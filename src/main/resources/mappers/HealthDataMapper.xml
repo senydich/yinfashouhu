@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.HealthDataDao">
+    <resultMap id="HealthDataResultMap" type="HealthData">
+        <id property="id" column="hd_id"/>
+        <result property="elderId" column="elder_id"/>
+        <result property="elderName" column="elder_name"/>
+        <result property="recordTime" column="record_time"/>
+        <result property="bloodPressure" column="blood_pressure"/>
+        <result property="bloodGlucose" column="blood_glucose"/>
+        <result property="heartRate" column="heart_rate"/>
+        <result property="spo2" column="spo2"/>
+        <result property="temperature" column="temperature"/>
+        <result property="weight" column="weight"/>
+        <association property="elder" javaType="Elder">
+            <id property="id" column="elder_id"/>
+            <result property="name" column="elder_name"/>
+            <result property="birthday" column="elder_birthday"/>
+            <result property="gender" column="elder_gender"/>
+            <result property="healthStatus" column="elder_health_status"/>
+            <result property="emergencyContact" column="elder_emergency_contact"/>
+            <result property="relation" column="elder_relation"/>
+            <result property="contactNumber" column="elder_contact_number"/>
+        </association>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        hd.id hd_id,
+        hd.elder_id,
+        e.name elder_name,
+        e.birthday elder_birthday,
+        e.gender elder_gender,
+        e.health_status elder_health_status,
+        e.emergency_contact elder_emergency_contact,
+        e.relation elder_relation,
+        e.contact_number elder_contact_number,
+        hd.record_time,
+        hd.blood_pressure,
+        hd.blood_glucose,
+        hd.heart_rate,
+        hd.spo2,
+        hd.temperature,
+        hd.weight
+    </sql>
+
+    <sql id="DynamicWhere">
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderId != null">
+                and hd.elder_id = #{elderId}
+            </if>
+            <if test="elderName != null and elderName != ''">
+                and (e.name like concat('%', #{elderName}, '%') or cast(e.id as char) = #{elderName})
+            </if>
+            <if test="startTime != null">
+                and hd.record_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                and hd.record_time &lt;= #{endTime}
+            </if>
+        </trim>
+    </sql>
+
+    <select id="healthDataList" resultMap="HealthDataResultMap">
+        select
+        <include refid="BaseColumnList"/>
+        from t_health_data hd
+        left join t_elder e on hd.elder_id = e.id
+        <include refid="DynamicWhere"/>
+        order by hd.record_time desc, hd.id desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="listByElderIdPage" resultMap="HealthDataResultMap">
+        select
+        <include refid="BaseColumnList"/>
+        from t_health_data hd
+        left join t_elder e on hd.elder_id = e.id
+        where hd.elder_id = #{elderId}
+        order by hd.record_time desc, hd.id desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="count" resultType="int">
+        select count(1)
+        from t_health_data hd
+        left join t_elder e on hd.elder_id = e.id
+        <include refid="DynamicWhere"/>
+    </select>
+
+    <select id="getById" resultMap="HealthDataResultMap">
+        select
+        <include refid="BaseColumnList"/>
+        from t_health_data hd
+        left join t_elder e on hd.elder_id = e.id
+        where hd.id = #{id}
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_health_data
+        (elder_id, record_time, blood_pressure, blood_glucose, heart_rate, spo2, temperature, weight)
+        values
+        (#{elderId}, #{recordTime}, #{bloodPressure}, #{bloodGlucose}, #{heartRate}, #{spo2}, #{temperature}, #{weight})
+    </insert>
+
+    <update id="update">
+        update t_health_data set
+            elder_id = #{elderId},
+            record_time = #{recordTime},
+            blood_pressure = #{bloodPressure},
+            blood_glucose = #{bloodGlucose},
+            heart_rate = #{heartRate},
+            spo2 = #{spo2},
+            temperature = #{temperature},
+            weight = #{weight}
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_health_data where id = #{id}
+    </delete>
+</mapper>

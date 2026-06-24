@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行为记录表单</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); padding: 24px 28px; border: 1px solid #e9eef2; max-width: 900px; margin: 0 auto; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+        .card-header h2 { font-size: 1.1rem; font-weight: 600; color: #1e3a5f; }
+        .btn-secondary, .btn-primary { padding: 6px 22px; border-radius: 32px; font-size: .8rem; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-secondary { background: #f1f5f9; border: 1px solid #e2e8f0; color: #334e68; }
+        .btn-primary { background: #2563eb; border: none; color: white; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: .78rem; font-weight: 500; color: #334e68; margin-bottom: 4px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: .85rem; outline: none; background: white; font-family: Arial, "Microsoft YaHei", sans-serif; }
+        .form-group textarea { min-height: 76px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid #ecf1f5; padding-top: 20px; }
+        .required { color: #b33a3a; margin-left: 2px; }
+        .error-box { margin-bottom: 16px; padding: 10px 14px; border-radius: 10px; background: #fce4e4; color: #9b2c2c; font-size: .8rem; border: 1px solid #f3b4b4; }
+        @media (max-width: 760px) { .form-row { grid-template-columns: 1fr; gap: 0; } }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-database"></i>
+        <span th:text="${behaviorRecord != null and behaviorRecord.id != null ? '编辑行为记录' : '新增行为记录'}">新增行为记录</span>
+    </h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-pen"></i> 填写行为记录</h2>
+        <a href="/report/behaviorRecordList" class="btn-secondary"><i class="fas fa-arrow-left"></i> 返回列表</a>
+    </div>
+
+    <div class="error-box" th:if="${errMsg != null}" th:text="${errMsg}">error</div>
+
+    <form th:action="${formAction}" method="post" th:object="${behaviorRecord}">
+        <input type="hidden" th:field="*{id}">
+        <div class="form-row">
+            <div class="form-group">
+                <label>老人<span class="required">*</span></label>
+                <select th:field="*{elderId}" required>
+                    <option value="">请选择老人</option>
+                    <option th:each="elder : ${elderList}" th:value="${elder.id}" th:text="${elder.name}">张三</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>行为类型<span class="required">*</span></label>
+                <select th:field="*{behaviorType}" required>
+                    <option value="">请选择类型</option>
+                    <option value="ACTIVITY">活动</option>
+                    <option value="SLEEP">睡眠</option>
+                    <option value="MEDICATION">用药</option>
+                    <option value="ABNORMAL">异常</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>行为名称<span class="required">*</span></label>
+                <input type="text" th:field="*{behaviorName}" placeholder="如：晨间散步、按时用药" required>
+            </div>
+            <div class="form-group">
+                <label>位置</label>
+                <input type="text" th:field="*{location}" placeholder="如：花园、房间、餐厅">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>开始时间<span class="required">*</span></label>
+                <input type="datetime-local" th:field="*{startTime}" required>
+            </div>
+            <div class="form-group">
+                <label>结束时间</label>
+                <input type="datetime-local" th:field="*{endTime}">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>持续分钟</label>
+                <input type="number" th:field="*{durationMinutes}" min="0" step="1" placeholder="不填则按开始/结束时间计算">
+            </div>
+            <div class="form-group">
+                <label>风险等级</label>
+                <select th:field="*{riskLevel}">
+                    <option value="LOW">低风险</option>
+                    <option value="MEDIUM">中风险</option>
+                    <option value="HIGH">高风险</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>来源设备</label>
+            <input type="text" th:field="*{sourceDevice}" placeholder="如：摄像头-走廊01、护理员手工录入">
+        </div>
+
+        <div class="form-group">
+            <label>备注</label>
+            <textarea th:field="*{remark}" placeholder="请输入备注"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="/report/behaviorRecordList" class="btn-secondary"><i class="fas fa-times"></i> 取消</a>
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> 保存</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'behaviorMgmt' }, '*');
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

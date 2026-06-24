@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.CheckupRecordDao">
+    <sql id="BaseColumnList">
+        cr.id,
+        cr.elder_id elderId,
+        e.name elderName,
+        cr.checkup_date checkupDate,
+        cr.checkup_type checkupType,
+        cr.hospital_name hospitalName,
+        cr.result_summary resultSummary,
+        cr.risk_level riskLevel,
+        cr.follow_up_suggestion followUpSuggestion,
+        cr.status,
+        cr.remark,
+        cr.create_date createDate,
+        cr.update_date updateDate
+    </sql>
+
+    <select id="checkupRecordList" resultType="CheckupRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_checkup_record cr
+        left join t_elder e on cr.elder_id = e.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderName != null and elderName != ''">
+                and e.name like concat('%', #{elderName}, '%')
+            </if>
+            <if test="checkupType != null and checkupType != ''">
+                and cr.checkup_type = #{checkupType}
+            </if>
+            <if test="riskLevel != null and riskLevel != ''">
+                and cr.risk_level = #{riskLevel}
+            </if>
+            <if test="status != null and status != ''">
+                and cr.status = #{status}
+            </if>
+        </trim>
+        order by cr.checkup_date desc, cr.id desc
+    </select>
+
+    <select id="getById" resultType="CheckupRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_checkup_record cr
+        left join t_elder e on cr.elder_id = e.id
+        where cr.id = #{id}
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_checkup_record
+        (elder_id, checkup_date, checkup_type, hospital_name, result_summary, risk_level, follow_up_suggestion, status, remark, create_date, update_date)
+        values
+        (#{elderId}, #{checkupDate}, #{checkupType}, #{hospitalName}, #{resultSummary}, #{riskLevel}, #{followUpSuggestion}, #{status}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_checkup_record set
+            elder_id = #{elderId},
+            checkup_date = #{checkupDate},
+            checkup_type = #{checkupType},
+            hospital_name = #{hospitalName},
+            result_summary = #{resultSummary},
+            risk_level = #{riskLevel},
+            follow_up_suggestion = #{followUpSuggestion},
+            status = #{status},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_checkup_record where id = #{id}
+    </delete>
+</mapper>

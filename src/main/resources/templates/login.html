@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>银发守护 - 登录</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: oklch(96.8% 0.012 238);
+            --surface: oklch(100% 0 0);
+            --surface-soft: oklch(97.9% 0.012 238);
+            --line: oklch(90.8% 0.024 238);
+            --line-strong: oklch(84.5% 0.038 238);
+            --ink: oklch(24% 0.042 250);
+            --ink-soft: oklch(39% 0.042 250);
+            --muted: oklch(51% 0.035 250);
+            --primary: oklch(55% 0.185 258);
+            --primary-dark: oklch(49% 0.19 258);
+            --primary-soft: oklch(95.5% 0.036 258);
+            --success: oklch(52% 0.145 158);
+            --success-soft: oklch(95% 0.052 158);
+            --warning-soft: oklch(96% 0.058 76);
+            --danger: oklch(55% 0.195 25);
+            --danger-soft: oklch(95.5% 0.045 25);
+        }
+        body {
+            min-height: 100vh;
+            font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+            background:
+                linear-gradient(180deg, oklch(99% 0.004 238) 0%, var(--bg) 100%),
+                var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 36px 24px;
+            color: var(--ink);
+            letter-spacing: 0;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+        .login-container {
+            width: 920px;
+            max-width: 100%;
+            min-height: 530px;
+            display: grid;
+            grid-template-columns: minmax(340px, .92fr) minmax(380px, 1fr);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 12px 30px oklch(24% 0.042 250 / 9%);
+        }
+        .brand-side {
+            background:
+                linear-gradient(180deg, oklch(31% 0.09 258) 0%, oklch(24% 0.065 250) 100%);
+            color: #fff;
+            padding: 42px 40px 34px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 42px;
+        }
+        .brand-logo { display: flex; align-items: center; gap: 12px; }
+        .brand-logo-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .brand-logo-text {
+            font-size: 1.34rem;
+            font-weight: 760;
+            line-height: 1.18;
+        }
+        .brand-tagline {
+            font-size: .78rem;
+            line-height: 1.4;
+            opacity: .76;
+            margin-top: 3px;
+        }
+        .brand-quote {
+            max-width: 360px;
+            margin-top: 62px;
+        }
+        .brand-quote strong {
+            display: block;
+            font-size: 1.86rem;
+            line-height: 1.26;
+            font-weight: 760;
+            text-wrap: balance;
+        }
+        .brand-quote span {
+            display: block;
+            max-width: 28em;
+            margin-top: 16px;
+            color: oklch(88% 0.018 250);
+            font-size: .95rem;
+            line-height: 1.82;
+        }
+        .brand-features {
+            display: grid;
+            gap: 16px;
+            max-width: 390px;
+            margin-top: 38px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            min-height: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: oklch(92% 0.012 250);
+            font-size: .9rem;
+            line-height: 1.62;
+        }
+        .feature-item i {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255,255,255,.13);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            margin-top: 1px;
+        }
+        .brand-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: oklch(83% 0.018 250);
+            font-size: .8rem;
+            line-height: 1.5;
+        }
+        .system-state {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+        .system-state::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 4px oklch(52% 0.145 158 / 18%);
+        }
+        .form-side {
+            padding: 52px 54px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: var(--surface);
+        }
+        .form-header { margin-bottom: 34px; }
+        .form-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-height: auto;
+            padding: 0;
+            border-radius: 0;
+            background: transparent;
+            color: var(--primary);
+            font-size: .82rem;
+            line-height: 1.4;
+            font-weight: 750;
+            margin-bottom: 12px;
+        }
+        .form-header h2 {
+            font-size: 1.82rem;
+            line-height: 1.24;
+            font-weight: 760;
+            color: var(--ink);
+            margin-bottom: 10px;
+            text-wrap: balance;
+        }
+        .form-header p {
+            color: var(--muted);
+            font-size: .96rem;
+            line-height: 1.75;
+        }
+        .login-form { display: grid; gap: 21px; }
+        .input-group { display: grid; gap: 9px; }
+        .input-group label {
+            font-size: .9rem;
+            line-height: 1.4;
+            color: var(--ink-soft);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .input-group label i { display: none; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper > i {
+            position: absolute;
+            left: 15px;
+            color: var(--muted);
+            pointer-events: none;
+        }
+        .input-wrapper input {
+            width: 100%;
+            height: 48px;
+            border: 1px solid var(--line-strong);
+            border-radius: 9px;
+            padding: 0 46px 0 46px;
+            outline: none;
+            font-size: .95rem;
+            line-height: 48px;
+            background: var(--surface);
+            color: var(--ink);
+            transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+        .input-wrapper input::placeholder {
+            color: oklch(48% 0.035 250);
+        }
+        .input-wrapper input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px oklch(55% 0.185 258 / 15%);
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: background .15s ease, color .15s ease;
+        }
+        .toggle-password:hover {
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: -2px;
+            font-size: .88rem;
+            line-height: 1.5;
+        }
+        .remember-me { display: flex; align-items: center; gap: 8px; color: var(--ink-soft); cursor: pointer; }
+        .remember-me input { accent-color: var(--primary); }
+        .forgot-password {
+            border: 0;
+            background: transparent;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: .88rem;
+            line-height: 1.5;
+        }
+        .forgot-password:hover { color: var(--primary-dark); }
+        .login-error {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 14px;
+            background: var(--danger-soft);
+            border: 1px solid oklch(87% 0.075 25);
+            border-radius: 9px;
+            color: oklch(42% 0.16 25);
+            font-size: .88rem;
+            line-height: 1.5;
+        }
+        .login-btn {
+            height: 48px;
+            border: none;
+            border-radius: 9px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 760;
+            font-size: .98rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background .15s ease, transform .15s ease;
+        }
+        .login-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        .login-btn:disabled { cursor: wait; opacity: .78; }
+        .security-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            margin-top: 22px;
+            padding: 12px 13px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: var(--surface-soft);
+            color: var(--muted);
+            font-size: .82rem;
+            line-height: 1.68;
+        }
+        .security-note i {
+            color: var(--success);
+            margin-top: 2px;
+        }
+        @media (max-width: 760px) {
+            body { padding: 18px; align-items: flex-start; }
+            .login-container { grid-template-columns: 1fr; min-height: 0; }
+            .brand-side { padding: 28px 24px; gap: 30px; }
+            .brand-quote { margin-top: 38px; }
+            .brand-quote strong { font-size: 1.48rem; line-height: 1.32; }
+            .brand-quote span { font-size: .9rem; line-height: 1.72; }
+            .brand-features { gap: 13px; margin-top: 28px; }
+            .brand-footer { align-items: flex-start; flex-direction: column; }
+            .form-side { padding: 34px 24px; }
+            .form-header { margin-bottom: 28px; }
+            .form-header h2 { font-size: 1.52rem; }
+            .form-options { align-items: flex-start; flex-direction: column; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <section class="brand-side">
+        <div>
+            <div class="brand-logo">
+                <div class="brand-logo-icon"><i class="fas fa-heart"></i></div>
+                <div>
+                    <div class="brand-logo-text">银发守护</div>
+                    <div class="brand-tagline">SilverGuard</div>
+                </div>
+            </div>
+            <div class="brand-quote">
+                <strong>智慧养老看护后台</strong>
+                <span>用科技连接陪伴，让关爱随时可见。</span>
+            </div>
+            <div class="brand-features">
+                <div class="feature-item"><i class="fas fa-shield-alt"></i><span>实时监护 · 异常预警 · 轨迹追踪</span></div>
+                <div class="feature-item"><i class="fas fa-heartbeat"></i><span>健康数据 · 阈值提醒 · 用药关注</span></div>
+                <div class="feature-item"><i class="fas fa-comments"></i><span>健康咨询 · 消息沟通 · 暖心服务</span></div>
+            </div>
+        </div>
+        <div class="brand-footer">
+            <span>2026 银发守护 · 智慧养老平台</span>
+            <span class="system-state">系统运行正常</span>
+        </div>
+    </section>
+
+    <section class="form-side">
+        <div class="form-header">
+            <div class="form-kicker"><i class="fas fa-shield-halved"></i>管理端登录</div>
+            <h2>系统登录</h2>
+            <p>请输入您的账号和密码</p>
+        </div>
+
+        <form class="login-form" action="/login" method="post" onsubmit="return handleLogin()">
+            <div class="input-group">
+                <label for="usernameInput"><i class="fas fa-user"></i>账号</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" placeholder="请输入账号" name="loginName" id="usernameInput" autocomplete="username" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="passwordInput"><i class="fas fa-lock"></i>密码</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="请输入密码" name="password" id="passwordInput" autocomplete="current-password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword()" aria-label="显示或隐藏密码">
+                        <i class="far fa-eye" id="toggleIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-me"><input type="checkbox" id="rememberAccount"><span>记住账号</span></label>
+                <button type="button" class="forgot-password" onclick="alert('请联系系统管理员重置密码。')">忘记密码？</button>
+            </div>
+
+            <div class="login-error" th:if="${errMsg}" role="alert">
+                <i class="fas fa-circle-exclamation"></i>
+                <span th:text="${errMsg}">账号或密码错误</span>
+            </div>
+
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                登录系统
+            </button>
+        </form>
+        <div class="security-note">
+            <i class="fas fa-lock"></i>
+            <span>请使用管理员分配的账号登录，公共设备使用完毕后及时退出。</span>
+        </div>
+    </section>
+</div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('passwordInput');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        toggleIcon.classList.toggle('fa-eye', !isPassword);
+        toggleIcon.classList.toggle('fa-eye-slash', isPassword);
+    }
+
+    function handleLogin() {
+        saveRememberedAccount();
+        const loginBtn = document.querySelector('.login-btn');
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登录中...';
+        loginBtn.disabled = true;
+        return true;
+    }
+
+    function saveRememberedAccount() {
+        const usernameInput = document.getElementById('usernameInput');
+        const rememberAccount = document.getElementById('rememberAccount');
+        if (rememberAccount.checked) {
+            localStorage.setItem('silverGuardRememberAccount', 'true');
+            localStorage.setItem('silverGuardLoginName', usernameInput.value);
+            localStorage.removeItem('silverGuardPassword');
+            localStorage.removeItem('silverGuardRememberLogin');
+            return;
+        }
+        localStorage.removeItem('silverGuardRememberAccount');
+        localStorage.removeItem('silverGuardLoginName');
+        localStorage.removeItem('silverGuardPassword');
+        localStorage.removeItem('silverGuardRememberLogin');
+    }
+
+    function loadRememberedAccount() {
+        const rememberAccount = document.getElementById('rememberAccount');
+        const remembered = localStorage.getItem('silverGuardRememberAccount') === 'true';
+        rememberAccount.checked = remembered;
+        if (remembered) {
+            document.getElementById('usernameInput').value = localStorage.getItem('silverGuardLoginName') || '';
+        }
+    }
+
+    window.addEventListener('load', function() {
+        loadRememberedAccount();
+        const usernameInput = document.getElementById('usernameInput');
+        const passwordInput = document.getElementById('passwordInput');
+        (usernameInput.value ? passwordInput : usernameInput).focus();
+    });
+</script>
+</body>
+</html>

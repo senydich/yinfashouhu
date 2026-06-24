@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.PermissionDao">
+    <sql id="BaseColumnList">
+        id,
+        perm_code permCode,
+        perm_name permName,
+        perm_url permUrl,
+        perm_type permType,
+        parent_id parentId,
+        icon,
+        sort_no sortNo,
+        status,
+        remark,
+        create_date createDate,
+        update_date updateDate
+    </sql>
+
+    <select id="permissionList" resultType="Permission">
+        select
+        <include refid="BaseColumnList"/>
+        from t_permission
+        <trim prefix="where" prefixOverrides="or">
+            <if test="permCode != null and permCode != ''">
+                or perm_code like concat('%', #{permCode}, '%')
+            </if>
+            <if test="permName != null and permName != ''">
+                or perm_name like concat('%', #{permName}, '%')
+            </if>
+            <if test="permUrl != null and permUrl != ''">
+                or perm_url like concat('%', #{permUrl}, '%')
+            </if>
+        </trim>
+        order by parent_id asc, sort_no asc, id asc
+    </select>
+
+    <select id="listAllActive" resultType="Permission">
+        select
+        <include refid="BaseColumnList"/>
+        from t_permission
+        where status = 1
+        order by parent_id asc, sort_no asc, id asc
+    </select>
+
+    <select id="getById" resultType="Permission">
+        select
+        <include refid="BaseColumnList"/>
+        from t_permission
+        where id = #{id}
+    </select>
+
+    <select id="getByPermCode" resultType="Permission">
+        select
+        <include refid="BaseColumnList"/>
+        from t_permission
+        where perm_code = #{permCode}
+        limit 1
+    </select>
+
+    <select id="getByPermUrl" resultType="Permission">
+        select
+        <include refid="BaseColumnList"/>
+        from t_permission
+        where perm_url = #{permUrl}
+        limit 1
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_permission
+        (perm_code, perm_name, perm_url, perm_type, parent_id, icon, sort_no, status, remark, create_date, update_date)
+        values
+        (#{permCode}, #{permName}, #{permUrl}, #{permType}, #{parentId}, #{icon}, #{sortNo}, #{status}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_permission set
+            perm_code = #{permCode},
+            perm_name = #{permName},
+            perm_url = #{permUrl},
+            perm_type = #{permType},
+            parent_id = #{parentId},
+            icon = #{icon},
+            sort_no = #{sortNo},
+            status = #{status},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_permission where id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>银发守护 - 菜单</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --accent: #2563eb;
+            --accent-soft: #eff6ff;
+            --accent-border: #bfdbfe;
+            --accent-text: #1d4ed8;
+        }
+        body[data-accent="teal"] { --accent: #0f9488; --accent-soft: #ecfdf5; --accent-border: #99f6e4; --accent-text: #0f766e; }
+        body[data-accent="green"] { --accent: #16a34a; --accent-soft: #f0fdf4; --accent-border: #bbf7d0; --accent-text: #15803d; }
+        body[data-accent="indigo"] { --accent: #4f46e5; --accent-soft: #eef2ff; --accent-border: #c7d2fe; --accent-text: #4338ca; }
+        body[data-accent="rose"] { --accent: #e11d48; --accent-soft: #fff1f2; --accent-border: #fecdd3; --accent-text: #be123c; }
+        body[data-accent="amber"] { --accent: #d97706; --accent-soft: #fffbeb; --accent-border: #fde68a; --accent-text: #b45309; }
+        html, body { width: 100%; height: 100%; }
+        body {
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background: #fff;
+            color: #334155;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            min-height: 100%;
+            padding: 14px 10px 18px;
+            background: #fff;
+        }
+        .nav-section { margin-bottom: 10px; }
+        .nav-item {
+            width: 100%;
+            min-height: 36px;
+            border: 0;
+            background: transparent;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            font-size: .8rem;
+            font-weight: 600;
+            text-align: left;
+            border-radius: 12px;
+            transition: background .15s, color .15s, transform .15s;
+        }
+        .nav-item i:first-child {
+            width: 18px;
+            text-align: center;
+            color: #64748b;
+            font-size: .9rem;
+            flex: 0 0 18px;
+        }
+        .nav-item:hover { background: var(--accent-soft); color: var(--accent-text); transform: translateX(1px); }
+        .nav-item:hover i:first-child { color: var(--accent); }
+        .nav-item.active {
+            background: var(--accent-soft);
+            color: var(--accent-text);
+            box-shadow: inset 0 0 0 1px var(--accent-border);
+        }
+        .nav-item.active i:first-child { color: var(--accent); }
+        .nav-item.parent { margin-top: 4px; color: #10233f; }
+        .nav-item .arrow {
+            margin-left: auto;
+            font-size: .68rem;
+            color: #94a3b8;
+            transition: transform .18s;
+        }
+        .nav-item.open .arrow { transform: rotate(180deg); }
+        .sub-nav {
+            display: none;
+            margin: 4px 0 8px;
+            padding: 5px 0 5px 8px;
+            border-left: 1px solid #e2e8f0;
+        }
+        .sub-nav.show { display: block; }
+        .sub-nav .nav-item {
+            min-height: 32px;
+            padding: 7px 10px;
+            color: #475569;
+            font-size: .76rem;
+            font-weight: 500;
+        }
+        .empty-menu {
+            margin: 18px 6px;
+            padding: 14px;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            border-radius: 14px;
+            color: #64748b;
+            font-size: .78rem;
+            line-height: 1.6;
+        }
+        body.sidebar-collapsed { overflow: hidden; }
+        body.sidebar-collapsed .sidebar { padding: 10px 8px; }
+        body.sidebar-collapsed .nav-section { margin-bottom: 6px; }
+        body.sidebar-collapsed .nav-item {
+            width: 44px;
+            height: 40px;
+            min-height: 40px;
+            justify-content: center;
+            padding: 0;
+            border-radius: 14px;
+        }
+        body.sidebar-collapsed .nav-item i:first-child {
+            width: auto;
+            font-size: 1rem;
+        }
+        body.sidebar-collapsed .nav-item span,
+        body.sidebar-collapsed .nav-item .arrow,
+        body.sidebar-collapsed .sub-nav,
+        body.sidebar-collapsed .empty-menu {
+            display: none !important;
+        }
+        body.theme-dark { background: #111827; color: #cbd5e1; }
+        body.theme-dark {
+            --accent-soft: #172554;
+            --accent-border: #1d4ed8;
+            --accent-text: #bfdbfe;
+        }
+        body.theme-dark[data-accent="teal"] { --accent-soft: #123b3a; --accent-border: #0f9488; }
+        body.theme-dark[data-accent="green"] { --accent-soft: #12371f; --accent-border: #16a34a; }
+        body.theme-dark[data-accent="indigo"] { --accent-soft: #242054; --accent-border: #4f46e5; }
+        body.theme-dark[data-accent="rose"] { --accent-soft: #4a1624; --accent-border: #e11d48; }
+        body.theme-dark[data-accent="amber"] { --accent-soft: #422b0b; --accent-border: #d97706; }
+        body.theme-dark .sidebar { background: #111827; }
+        body.theme-dark .nav-item { color: #cbd5e1; }
+        body.theme-dark .nav-item i:first-child { color: #94a3b8; }
+        body.theme-dark .nav-item.parent { color: #e5e7eb; }
+        body.theme-dark .nav-item:hover { background: #1f2937; color: #bfdbfe; }
+        body.theme-dark .nav-item.active { background: var(--accent-soft); color: #bfdbfe; box-shadow: inset 0 0 0 1px var(--accent-border); }
+        body.theme-dark .sub-nav { border-left-color: #243244; }
+        body.theme-dark .empty-menu { background: #1f2937; border-color: #334155; color: #94a3b8; }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition-duration: .01ms !important;
+            }
+            .nav-item:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="sidebar" aria-label="后台菜单">
+    <div class="nav-section" th:if="${canDashboard}">
+        <button class="nav-item active" type="button" data-page="dashboard" data-url="/dashboard">
+            <i class="fas fa-chart-pie"></i><span>数据概览</span>
+        </button>
+    </div>
+
+    <div class="nav-section" th:if="${canElderList or canFallRecord or canHealthData or canCheckupRecord or canReminderTask}">
+        <button class="nav-item parent" type="button">
+            <i class="fas fa-user-plus"></i><span>老人管理</span><i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="sub-nav">
+            <button class="nav-item" type="button" data-page="elderInfo" data-url="/elder/elderList" th:if="${canElderList}"><i class="fas fa-user"></i><span>老人信息</span></button>
+            <button class="nav-item" type="button" data-page="fallRecords" data-url="/record/fallRecordList" th:if="${canFallRecord}"><i class="fas fa-person-falling"></i><span>跌倒记录</span></button>
+            <button class="nav-item" type="button" data-page="healthData" data-url="/healthData/list" th:if="${canHealthData}"><i class="fas fa-heartbeat"></i><span>健康数据</span></button>
+            <button class="nav-item" type="button" data-page="examRecords" data-url="/report/checkupRecordList" th:if="${canCheckupRecord}"><i class="fas fa-file-medical"></i><span>体检记录</span></button>
+            <button class="nav-item" type="button" data-page="medReminder" data-url="/record/reminderTaskList" th:if="${canReminderTask}"><i class="fas fa-clock"></i><span>用药提醒</span></button>
+        </div>
+    </div>
+
+    <div class="nav-section" th:if="${canEventList or canFallRecord or canDialogRecord or canCameraDevice or canCameraMonitor}">
+        <button class="nav-item parent" type="button">
+            <i class="fas fa-shield-alt"></i><span>安全监护</span><i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="sub-nav">
+            <button class="nav-item" type="button" data-page="eventList" data-url="/record/eventList" th:if="${canEventList}"><i class="fas fa-list-check"></i><span>事件列表</span></button>
+            <button class="nav-item" type="button" data-page="fallRecords" data-url="/record/fallRecordList" th:if="${canFallRecord}"><i class="fas fa-person-falling"></i><span>跌倒记录查询</span></button>
+            <button class="nav-item" type="button" data-page="dialogRecords" data-url="/record/dialogRecordList" th:if="${canDialogRecord}"><i class="fas fa-comments"></i><span>对话记录</span></button>
+            <button class="nav-item" type="button" data-page="cameraDevice" data-url="/record/cameraDeviceList" th:if="${canCameraDevice}"><i class="fas fa-video"></i><span>摄像头管理</span></button>
+            <button class="nav-item" type="button" data-page="cameraMonitor" data-url="/pages/camera-info.html" th:if="${canCameraMonitor}"><i class="fas fa-desktop"></i><span>实时监控</span></button>
+        </div>
+    </div>
+
+    <div class="nav-section" th:if="${canCameraDevice or canVoiceTerminal or canEdgeGateway}">
+        <button class="nav-item parent" type="button">
+            <i class="fas fa-microchip"></i><span>设备管理</span><i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="sub-nav">
+            <button class="nav-item" type="button" data-page="cameraDevice" data-url="/record/cameraDeviceList" th:if="${canCameraDevice}"><i class="fas fa-camera"></i><span>摄像头管理</span></button>
+            <button class="nav-item" type="button" data-page="voiceTerm" data-url="/record/voiceTerminalList" th:if="${canVoiceTerminal}"><i class="fas fa-microphone-alt"></i><span>语音终端管理</span></button>
+            <button class="nav-item" type="button" data-page="gateway" data-url="/record/edgeGatewayList" th:if="${canEdgeGateway}"><i class="fas fa-network-wired"></i><span>边缘网关管理</span></button>
+        </div>
+    </div>
+
+    <div class="nav-section" th:if="${canChat or canReminderTask or canAccompanyRecord}">
+        <button class="nav-item parent" type="button">
+            <i class="fas fa-smile"></i><span>情感交互</span><i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="sub-nav">
+            <button class="nav-item" type="button" data-page="chat" data-url="/pages/chat.html" th:if="${canChat}"><i class="fas fa-comments"></i><span>对话交互</span></button>
+            <button class="nav-item" type="button" data-page="remindTasks" data-url="/record/reminderTaskList" th:if="${canReminderTask}"><i class="fas fa-tasks"></i><span>提醒任务</span></button>
+            <button class="nav-item" type="button" data-page="accompany" data-url="/record/accompanyRecordList" th:if="${canAccompanyRecord}"><i class="fas fa-hand-holding-heart"></i><span>陪伴记录</span></button>
+        </div>
+    </div>
+
+    <div class="nav-section" th:if="${canDailyReport or canBehaviorRecord}">
+        <button class="nav-item parent" type="button">
+            <i class="fas fa-file-alt"></i><span>行为报告</span><i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="sub-nav">
+            <button class="nav-item" type="button" data-page="dailyReport" data-url="/report/dailyReportList" th:if="${canDailyReport}"><i class="fas fa-file-signature"></i><span>日常报告生成</span></button>
+            <button class="nav-item" type="button" data-page="behaviorMgmt" data-url="/report/behaviorRecordList" th:if="${canBehaviorRecord}"><i class="fas fa-database"></i><span>行为记录管理</span></button>
+        </div>
+    </div>
+
+    <div class="nav-section" th:if="${canThreshold or canRole or canUser or canOperationLog or canDictionary}">
+        <button class="nav-item parent" type="button">
+            <i class="fas fa-cog"></i><span>系统管理</span><i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="sub-nav">
+            <button class="nav-item" type="button" data-page="threshold" data-url="/hdt/getOne" th:if="${canThreshold}"><i class="fas fa-sliders-h"></i><span>健康阈值设置</span></button>
+            <button class="nav-item" type="button" data-page="rolePerm" data-url="/role/roleList" th:if="${canRole}"><i class="fas fa-lock"></i><span>角色权限控制</span></button>
+            <button class="nav-item" type="button" data-page="userMgmt" data-url="/user/userList" th:if="${canUser}"><i class="fas fa-users-cog"></i><span>用户管理</span></button>
+            <button class="nav-item" type="button" data-page="operationLog" data-url="/operationLog/operationLogList" th:if="${canOperationLog}"><i class="fas fa-history"></i><span>操作日志</span></button>
+            <button class="nav-item" type="button" data-page="dict" data-url="/dictionary/dictionaryList" th:if="${canDictionary}"><i class="fas fa-book"></i><span>数据字典</span></button>
+        </div>
+    </div>
+
+    <div class="empty-menu" th:if="${!(canDashboard or canElderList or canFallRecord or canHealthData or canCheckupRecord or canReminderTask or canEventList or canDialogRecord or canCameraDevice or canCameraMonitor or canVoiceTerminal or canEdgeGateway or canChat or canAccompanyRecord or canDailyReport or canBehaviorRecord or canThreshold or canRole or canUser or canOperationLog or canDictionary)}">
+        当前账号暂无可访问菜单，请联系管理员配置权限。
+    </div>
+</nav>
+
+<script>
+    function navigate(url) {
+        if (url && url !== '#') {
+            window.parent.postMessage({ type: 'navigate', page: url }, '*');
+        }
+    }
+
+    function isCollapsed() {
+        return document.body.classList.contains('sidebar-collapsed');
+    }
+
+    function requestExpand() {
+        window.parent.postMessage({ type: 'sidebarExpand' }, '*');
+    }
+
+    function setActive(item) {
+        document.querySelectorAll('.nav-item').forEach(function(menuItem) {
+            menuItem.classList.remove('active');
+        });
+        item.classList.add('active');
+        const section = item.closest('.nav-section');
+        const parent = section ? section.querySelector(':scope > .parent') : null;
+        if (parent && parent !== item) {
+            parent.classList.add('active');
+        }
+    }
+
+    document.querySelectorAll('.parent').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (isCollapsed()) {
+                requestExpand();
+                return;
+            }
+            const subNav = this.parentElement.querySelector('.sub-nav');
+            if (subNav) {
+                subNav.classList.toggle('show');
+                this.classList.toggle('open');
+            }
+        });
+    });
+
+    document.querySelectorAll('.nav-item:not(.parent)').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            setActive(this);
+            navigate(this.getAttribute('data-url'));
+        });
+        const label = item.querySelector('span');
+        if (label) {
+            item.setAttribute('title', label.textContent.trim());
+        }
+    });
+
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'themeApply') {
+            document.body.classList.toggle('theme-dark', event.data.theme === 'dark');
+            return;
+        }
+        if (event.data && event.data.type === 'accentApply') {
+            document.body.dataset.accent = event.data.accent || 'blue';
+            return;
+        }
+        if (event.data && event.data.type === 'sidebarCollapse') {
+            document.body.classList.toggle('sidebar-collapsed', !!event.data.collapsed);
+        }
+    });
+
+    document.body.classList.toggle('theme-dark', localStorage.getItem('theme') === 'dark');
+    document.body.dataset.accent = localStorage.getItem('accentTheme') || 'blue';
+</script>
+</body>
+</html>

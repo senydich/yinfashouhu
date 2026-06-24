@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&#32769;&#20154;&#20449;&#24687; - &#38134;&#21457;&#23432;&#25252;</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: Arial, sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; overflow-x: hidden; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 500; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0, 0, 0, 0.04); padding: 20px; border: 1px solid #e9eef2; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .card-header h2 { font-size: 1.05rem; font-weight: 600; color: #1e3a5f; }
+        .btn-primary { background: #2563eb; border: none; color: white; font-weight: 500; padding: 6px 18px; border-radius: 32px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; text-decoration: none; }
+        .btn-primary:hover { background: #1a4fbc; }
+        .btn-icon { background: none; border: none; font-size: 0.9rem; color: #5f7d9c; margin: 0 4px; cursor: pointer; transition: 0.1s; }
+        .btn-icon:hover { color: #2563eb; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 800px; }
+        th { text-align: left; padding: 10px 12px; color: #2b4f6e; font-weight: 600; background: #f8fafc; border-bottom: 1px solid #dee7ef; white-space: nowrap; }
+        td { padding: 8px 12px; border-bottom: 1px solid #ecf1f5; color: #1e3b4f; white-space: nowrap; }
+        .badge { background: #e2eff9; padding: 3px 10px; border-radius: 24px; font-size: 0.7rem; font-weight: 500; display: inline-block; margin-right: 4px; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+        .search-input { flex: 1; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 32px; font-size: 0.8rem; outline: none; }
+        .search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
+        .stats-info { margin-top: 12px; color: #64748b; font-size: 0.75rem; display: flex; align-items: center; gap: 8px; }
+        .modal-mask { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, .38); z-index: 20; align-items: center; justify-content: center; padding: 20px; }
+        .modal-mask.show { display: flex; }
+        .detail-modal { width: min(520px, 100%); background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 22px 55px -24px rgba(15,23,42,.45); overflow: hidden; }
+        .detail-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid #eef2f7; }
+        .detail-header h3 { font-size: 1rem; color: #0f2b45; display: flex; gap: 8px; align-items: center; }
+        .detail-close { border: 0; background: #f1f5f9; color: #475569; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        .detail-body { padding: 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .detail-item { background: #f8fafc; border: 1px solid #edf2f7; border-radius: 10px; padding: 10px 12px; }
+        .detail-item .label { color: #64748b; font-size: .72rem; margin-bottom: 4px; }
+        .detail-item .value { color: #0f172a; font-size: .88rem; font-weight: 600; word-break: break-word; }
+        .detail-item.full { grid-column: 1 / -1; }
+        .detail-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 18px; border-top: 1px solid #eef2f7; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-user-friends"></i> &#32769;&#20154;&#20449;&#24687;</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-list"></i> &#32769;&#20154;&#20449;&#24687;&#21015;&#34920;</h2>
+        <button class="btn-primary" onclick="location.href='/elder/addView'">
+            <i class="fas fa-plus"></i> &#26032;&#22686;
+        </button>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" class="search-input" placeholder="&#25628;&#32034;&#22995;&#21517;&#12289;&#32852;&#31995;&#26041;&#24335;..." id="searchInput">
+        <button class="btn-primary" style="padding: 6px 16px;" onclick="queryElders()">
+            <i class="fas fa-search"></i> &#25628;&#32034;
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>&#22995;&#21517;</th>
+                <th>&#24180;&#40836;</th>
+                <th>&#24615;&#21035;</th>
+                <th>&#20581;&#24247;&#29366;&#20917;</th>
+                <th>&#32039;&#24613;&#32852;&#31995;&#20154;</th>
+                <th>&#32852;&#31995;&#30005;&#35805;</th>
+                <th>&#25805;&#20316;</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="elder : ${elderList}">
+                <td><strong th:text="${elder.name}">张三</strong></td>
+                <td th:text="${elder.age}">84</td>
+                <td th:text="${elder.gender == '0' ? '男' : (elder.gender == '1' ? '女' : '未知')}">未知</td>
+                <td><span class="badge" th:text="${elder.healthStatus}">高血压</span></td>
+                <td th:text="${elder.emergencyContact + '(' + elder.relation + ')'}">李华(女儿)</td>
+                <td th:text="${elder.contactNumber}">166****2233</td>
+                <td>
+                    <i class="fas fa-edit btn-icon" th:onclick="|updateElder(${elder.id})|"></i>
+                    <i class="fas fa-trash-alt btn-icon" th:onclick="|delElder(${elder.id})|"></i>
+                    <i class="fas fa-eye btn-icon"
+                       th:attr="data-id=${elder.id},data-name=${elder.name},data-age=${elder.age},data-gender=${elder.gender == '0' ? '男' : (elder.gender == '1' ? '女' : '未知')},data-health=${elder.healthStatus},data-contact=${elder.emergencyContact},data-relation=${elder.relation},data-phone=${elder.contactNumber}"
+                       onclick="viewElder(this)"></i>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="stats-info">
+        <i class="fas fa-info-circle"></i>
+        <span>&#20849; <span th:text="${elderList == null ? 0 : elderList.size()}">0</span> &#20301;&#32769;&#20154;</span>
+    </div>
+</div>
+
+<div class="modal-mask" id="elderDetailModal">
+    <div class="detail-modal">
+        <div class="detail-header">
+            <h3><i class="fas fa-id-card"></i> 老人详情</h3>
+            <button class="detail-close" type="button" onclick="closeElderDetail()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="detail-body">
+            <div class="detail-item"><div class="label">姓名</div><div class="value" id="detailName">-</div></div>
+            <div class="detail-item"><div class="label">年龄</div><div class="value" id="detailAge">-</div></div>
+            <div class="detail-item"><div class="label">性别</div><div class="value" id="detailGender">-</div></div>
+            <div class="detail-item"><div class="label">健康状况</div><div class="value" id="detailHealth">-</div></div>
+            <div class="detail-item"><div class="label">紧急联系人</div><div class="value" id="detailContact">-</div></div>
+            <div class="detail-item"><div class="label">关系</div><div class="value" id="detailRelation">-</div></div>
+            <div class="detail-item full"><div class="label">联系电话</div><div class="value" id="detailPhone">-</div></div>
+        </div>
+        <div class="detail-actions">
+            <button class="btn-primary" id="detailEditBtn" type="button"><i class="fas fa-edit"></i> 编辑资料</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'elderInfo' }, '*');
+
+    function delElder(id) {
+        if (confirm('确认删除这条老人记录？')) {
+            window.location.href = '/elder/del?id=' + id;
+        }
+    }
+
+    function updateElder(id) {
+        location.href = '/elder/updateView?id=' + id;
+    }
+
+    function setDetail(id, value) {
+        document.getElementById(id).textContent = value || '-';
+    }
+
+    function viewElder(el) {
+        setDetail('detailName', el.dataset.name);
+        setDetail('detailAge', el.dataset.age);
+        setDetail('detailGender', el.dataset.gender);
+        setDetail('detailHealth', el.dataset.health);
+        setDetail('detailContact', el.dataset.contact);
+        setDetail('detailRelation', el.dataset.relation);
+        setDetail('detailPhone', el.dataset.phone);
+        document.getElementById('detailEditBtn').onclick = function() {
+            updateElder(el.dataset.id);
+        };
+        document.getElementById('elderDetailModal').classList.add('show');
+    }
+
+    function closeElderDetail() {
+        document.getElementById('elderDetailModal').classList.remove('show');
+    }
+
+    function queryElders() {
+        const keyword = document.getElementById('searchInput').value;
+        location.href = '/elder/elderList?name=' + encodeURIComponent(keyword)
+            + '&contactNumber=' + encodeURIComponent(keyword);
+    }
+
+    document.getElementById('elderDetailModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeElderDetail();
+        }
+    });
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>
+
+

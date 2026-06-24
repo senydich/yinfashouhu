@@ -1,0 +1,172 @@
+body.theme-dark {
+    background: #0f172a !important;
+    color: #e5e7eb !important;
+}
+
+body.theme-dark .card,
+body.theme-dark [class*="card"],
+body.theme-dark [class*="Card"],
+body.theme-dark [class*="panel"],
+body.theme-dark [class*="Panel"],
+body.theme-dark [class*="box"],
+body.theme-dark [class*="Box"],
+body.theme-dark [class*="wrapper"],
+body.theme-dark [class*="Wrapper"],
+body.theme-dark [class*="container"],
+body.theme-dark [class*="Container"],
+body.theme-dark [class*="item"],
+body.theme-dark [class*="Item"],
+body.theme-dark [class*="stats"],
+body.theme-dark [class*="Stats"],
+body.theme-dark [class*="form"],
+body.theme-dark [class*="Form"],
+body.theme-dark [class*="table"],
+body.theme-dark [class*="Table"],
+body.theme-dark [class*="search"],
+body.theme-dark [class*="Search"],
+body.theme-dark [class*="pagination"],
+body.theme-dark [class*="Pagination"],
+body.theme-dark form {
+    background: #111827 !important;
+    border-color: #243244 !important;
+    box-shadow: none !important;
+}
+
+body.theme-dark .page-header,
+body.theme-dark .card-header,
+body.theme-dark .form-grid,
+body.theme-dark .form-row,
+body.theme-dark .form-actions,
+body.theme-dark .action-buttons,
+body.theme-dark .chart-bars,
+body.theme-dark .bar-wrapper {
+    background: transparent !important;
+}
+
+body.theme-dark tr,
+body.theme-dark tbody,
+body.theme-dark table {
+    background: transparent !important;
+}
+
+body.theme-dark tr:hover,
+body.theme-dark [class*="card"]:hover,
+body.theme-dark [class*="item"]:hover,
+body.theme-dark [class*="Item"]:hover {
+    background: #162033 !important;
+}
+
+body.theme-dark [class*="icon"],
+body.theme-dark [class*="Icon"] {
+    background-color: #172554 !important;
+    color: #93c5fd !important;
+}
+
+body.theme-dark h1,
+body.theme-dark h2,
+body.theme-dark h3,
+body.theme-dark h4,
+body.theme-dark h5,
+body.theme-dark p,
+body.theme-dark span,
+body.theme-dark label,
+body.theme-dark td,
+body.theme-dark strong {
+    color: #e5e7eb !important;
+}
+
+body.theme-dark a:not(.btn-primary) {
+    color: #93c5fd !important;
+}
+
+body.theme-dark .hint,
+body.theme-dark .unit,
+body.theme-dark .stats-info,
+body.theme-dark .subtitle,
+body.theme-dark .description,
+body.theme-dark .meta,
+body.theme-dark .text-muted,
+body.theme-dark [class*="label"],
+body.theme-dark [class*="Label"] {
+    color: #94a3b8 !important;
+}
+
+body.theme-dark [class*="number"],
+body.theme-dark [class*="Number"] {
+    color: #bfdbfe !important;
+}
+
+body.theme-dark th {
+    background: #1f2937 !important;
+    color: #bfdbfe !important;
+    border-color: #334155 !important;
+}
+
+body.theme-dark td {
+    border-color: #243244 !important;
+}
+
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea {
+    background: #0f172a !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+}
+
+body.theme-dark input::placeholder,
+body.theme-dark textarea::placeholder {
+    color: #64748b !important;
+}
+
+body.theme-dark button:not(.btn-primary),
+body.theme-dark .page-btn,
+body.theme-dark .date-nav-btn,
+body.theme-dark .btn-outline,
+body.theme-dark .btn-danger,
+body.theme-dark .btn-secondary {
+    background: #1f2937 !important;
+    border-color: #334155 !important;
+    color: #e5e7eb !important;
+}
+
+body.theme-dark .btn-primary {
+    background: #2563eb !important;
+    color: #ffffff !important;
+}
+
+body.theme-dark .badge-success {
+    background: #064e3b !important;
+    color: #a7f3d0 !important;
+}
+
+body.theme-dark .badge-danger {
+    background: #7f1d1d !important;
+    color: #fecaca !important;
+}
+
+body.theme-dark .badge {
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+body.theme-dark td .badge,
+body.theme-dark .health-status,
+body.theme-dark [class*="status"],
+body.theme-dark [class*="Status"] {
+    background: #172554 !important;
+    border-color: #1d4ed8 !important;
+    color: #bfdbfe !important;
+}
+
+body.theme-dark .warning-level {
+    background: #431407 !important;
+    border-left-color: #fb923c !important;
+}
+
+body.theme-dark .status-bar,
+body.theme-dark .hero-image {
+    background: #1e293b !important;
+    color: #bfdbfe !important;
+}

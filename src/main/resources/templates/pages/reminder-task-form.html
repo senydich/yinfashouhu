@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提醒任务表单</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header h1 { font-size: 1.5rem; color: #0f2b45; margin-bottom: 16px; }
+        .card { background: #fff; border-radius: 16px; padding: 24px 28px; border: 1px solid #e9eef2; max-width: 860px; margin: 0 auto; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: .78rem; color: #334e68; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: .85rem; font-family: Arial, "Microsoft YaHei", sans-serif; }
+        textarea { min-height: 74px; resize: vertical; }
+        .actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 18px; border-top: 1px solid #ecf1f5; }
+        .btn-primary, .btn-secondary { padding: 7px 22px; border-radius: 32px; font-size: .8rem; text-decoration: none; border: none; cursor: pointer; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-secondary { background: #f1f5f9; color: #334e68; border: 1px solid #e2e8f0; }
+        .error-box { margin-bottom: 14px; padding: 10px 14px; background: #fce4e4; color: #9b2c2c; border-radius: 10px; font-size: .8rem; }
+        @media (max-width: 760px) { .form-row { grid-template-columns: 1fr; gap: 0; } }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header"><h1><i class="fas fa-tasks"></i> <span th:text="${reminderTask.id == null ? '新增提醒任务' : '编辑提醒任务'}">新增提醒任务</span></h1></div>
+<div class="card">
+    <div class="error-box" th:if="${errMsg != null}" th:text="${errMsg}"></div>
+    <form th:action="${formAction}" method="post" th:object="${reminderTask}">
+        <input type="hidden" th:field="*{id}">
+        <div class="form-row">
+            <div class="form-group">
+                <label>老人</label>
+                <select th:field="*{elderId}" required>
+                    <option value="">请选择老人</option>
+                    <option th:each="elder : ${elderList}" th:value="${elder.id}" th:text="${elder.name}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>任务标题</label>
+                <input type="text" th:field="*{taskTitle}" required placeholder="如：早餐后服药">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>任务类型</label>
+                <select th:field="*{taskType}" required>
+                    <option value="MEDICATION">用药</option>
+                    <option value="MEAL">用餐</option>
+                    <option value="ACTIVITY">活动</option>
+                    <option value="FOLLOW_UP">随访</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>提醒时间</label>
+                <input type="datetime-local" th:field="*{remindTime}" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>重复规则</label>
+                <select th:field="*{repeatRule}">
+                    <option value="ONCE">单次</option>
+                    <option value="DAILY">每天</option>
+                    <option value="WEEKLY">每周</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>状态</label>
+                <select th:field="*{status}">
+                    <option value="PENDING">待提醒</option>
+                    <option value="DONE">已完成</option>
+                    <option value="CANCELLED">已取消</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>备注</label>
+            <textarea th:field="*{remark}" placeholder="请输入备注"></textarea>
+        </div>
+        <div class="actions">
+            <a class="btn-secondary" href="/record/reminderTaskList">取消</a>
+            <button class="btn-primary" type="submit">保存</button>
+        </div>
+    </form>
+</div>
+<script>window.parent.postMessage({ type: 'pageLoaded', page: 'remindTasks' }, '*');</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

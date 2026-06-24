@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提醒任务</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .card { background: #fff; border: 1px solid #e9eef2; border-radius: 16px; padding: 20px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); }
+        .card-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .btn-primary { background: #2563eb; border: none; color: #fff; padding: 7px 16px; border-radius: 32px; text-decoration: none; display: inline-flex; gap: 6px; align-items: center; font-size: .8rem; cursor: pointer; }
+        .btn-icon { background: none; border: none; color: #5f7d9c; margin: 0 4px; cursor: pointer; }
+        .btn-icon:hover { color: #2563eb; }
+        .btn-icon.danger:hover { color: #b33a3a; }
+        .search-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .input, .select { min-width: 160px; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 32px; font-size: .8rem; }
+        table { width: 100%; border-collapse: collapse; min-width: 1080px; font-size: .8rem; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #ecf1f5; white-space: nowrap; text-align: left; }
+        th { background: #f8fafc; color: #2b4f6e; }
+        .badge { padding: 3px 10px; border-radius: 24px; font-size: .7rem; }
+        .pending { background: #fff3e0; color: #b45309; }
+        .done { background: #dff0e6; color: #1b6b4a; }
+        .cancel { background: #f1f5f9; color: #64748b; }
+        .stats-info { margin-top: 12px; color: #64748b; font-size: .75rem; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header"><h1><i class="fas fa-tasks"></i> 提醒任务</h1></div>
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-list-ul"></i> 任务列表</h2>
+        <a class="btn-primary" href="/record/reminderTaskAddView"><i class="fas fa-plus"></i> 新增任务</a>
+    </div>
+    <form class="search-bar" action="/record/reminderTaskList" method="get">
+        <input class="input" name="elderName" placeholder="老人姓名">
+        <input class="input" name="taskTitle" placeholder="任务标题">
+        <select class="select" name="taskType">
+            <option value="">全部类型</option>
+            <option value="MEDICATION">用药</option>
+            <option value="MEAL">用餐</option>
+            <option value="ACTIVITY">活动</option>
+            <option value="FOLLOW_UP">随访</option>
+        </select>
+        <select class="select" name="status">
+            <option value="">全部状态</option>
+            <option value="PENDING">待提醒</option>
+            <option value="DONE">已完成</option>
+            <option value="CANCELLED">已取消</option>
+        </select>
+        <button class="btn-primary" type="submit"><i class="fas fa-search"></i> 搜索</button>
+    </form>
+    <table>
+        <thead>
+        <tr><th>ID</th><th>老人</th><th>标题</th><th>类型</th><th>提醒时间</th><th>重复</th><th>状态</th><th>备注</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${reminderTaskList}">
+            <td th:text="${item.id}"></td>
+            <td th:text="${item.elderName}"></td>
+            <td th:text="${item.taskTitle}"></td>
+            <td th:text="${item.taskType == 'MEDICATION' ? '用药' : (item.taskType == 'MEAL' ? '用餐' : (item.taskType == 'ACTIVITY' ? '活动' : '随访'))}"></td>
+            <td th:text="${item.remindTime != null ? #dates.format(item.remindTime, 'yyyy-MM-dd HH:mm') : ''}"></td>
+            <td th:text="${item.repeatRule == 'DAILY' ? '每天' : (item.repeatRule == 'WEEKLY' ? '每周' : '单次')}"></td>
+            <td><span class="badge" th:classappend="${item.status == 'DONE' ? ' done' : (item.status == 'CANCELLED' ? ' cancel' : ' pending')}" th:text="${item.status == 'DONE' ? '已完成' : (item.status == 'CANCELLED' ? '已取消' : '待提醒')}"></span></td>
+            <td th:text="${item.remark}"></td>
+            <td>
+                <i class="fas fa-edit btn-icon" th:onclick="|location.href='/record/reminderTaskUpdateView?id=${item.id}'|"></i>
+                <i class="fas fa-trash-alt btn-icon danger" th:onclick="|delTask(${item.id})|"></i>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="stats-info">共 <span th:text="${reminderTaskList == null ? 0 : reminderTaskList.size()}">0</span> 条任务</div>
+</div>
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'remindTasks' }, '*');
+    function delTask(id) {
+        if (confirm('确认删除这条提醒任务？')) {
+            location.href = '/record/reminderTaskDel?id=' + id;
+        }
+    }
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&#29992;&#25143;&#21015;&#34920;</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: Arial, sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0, 0, 0, 0.04); padding: 20px; border: 1px solid #e9eef2; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+        .card-header h2 { font-size: 1.05rem; font-weight: 600; color: #1e3a5f; }
+        .btn-primary { background: #2563eb; border: none; color: white; font-weight: 500; padding: 6px 18px; border-radius: 32px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; text-decoration: none; }
+        .btn-primary:hover { background: #1a4fbc; }
+        .btn-icon { background: none; border: none; font-size: 0.9rem; color: #5f7d9c; margin: 0 4px; cursor: pointer; transition: 0.1s; }
+        .btn-icon:hover { color: #2563eb; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 900px; }
+        th { text-align: left; padding: 10px 12px; color: #2b4f6e; font-weight: 600; background: #f8fafc; border-bottom: 1px solid #dee7ef; white-space: nowrap; }
+        td { padding: 8px 12px; border-bottom: 1px solid #ecf1f5; color: #1e3b4f; white-space: nowrap; }
+        .badge { background: #e2eff9; padding: 3px 10px; border-radius: 24px; font-size: 0.7rem; font-weight: 500; display: inline-block; }
+        .badge-success { background: #dff0e6; color: #1b6b4a; }
+        .badge-danger { background: #fce4e4; color: #b33a3a; }
+        .search-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .search-input { flex: 1; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 32px; font-size: 0.8rem; outline: none; min-width: 160px; }
+        .search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
+        .stats-info { margin-top: 12px; color: #64748b; font-size: 0.75rem; display: flex; align-items: center; gap: 8px; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-users-cog"></i> &#29992;&#25143;&#21015;&#34920;</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-list-ul"></i> &#25152;&#26377;&#29992;&#25143;</h2>
+        <a href="/user/addView" class="btn-primary"><i class="fas fa-plus"></i> &#26032;&#22686;&#29992;&#25143;</a>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" class="search-input" placeholder="&#25628;&#32034;&#30331;&#24405;&#21517;&#12289;&#22995;&#21517;&#12289;&#30005;&#35805;..." id="searchInput">
+        <button class="btn-primary" style="padding: 6px 16px;" onclick="queryUsers()">
+            <i class="fas fa-search"></i> &#25628;&#32034;
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>&#30331;&#24405;&#21517;</th>
+                <th>&#22995;&#21517;</th>
+                <th>&#23703;&#20301;</th>
+                <th>&#24615;&#21035;</th>
+                <th>&#30005;&#35805;</th>
+                <th>&#37038;&#31665;</th>
+                <th>&#29366;&#24577;</th>
+                <th>&#21019;&#24314;&#26102;&#38388;</th>
+                <th>&#20462;&#25913;&#26102;&#38388;</th>
+                <th>&#25805;&#20316;</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${userList}">
+                <td th:text="${user.id}">1</td>
+                <td><strong th:text="${user.loginName}">admin</strong></td>
+                <td th:text="${user.realName}">管理员</td>
+                <td th:text="${user.job}">管理员</td>
+                <td th:text="${user.sex == 1 ? '男' : (user.sex == 0 ? '女' : '未知')}">男</td>
+                <td th:text="${user.phone}">13800000000</td>
+                <td th:text="${user.email}">admin@example.com</td>
+                <td>
+                    <span class="badge" th:classappend="${user.status == 1 ? ' badge-success' : ' badge-danger'}" th:text="${user.status == 1 ? '启用' : '停用'}">启用</span>
+                </td>
+                <td th:text="${user.createDate != null ? #dates.format(user.createDate, 'yyyy-MM-dd HH:mm') : ''}">2026-01-01</td>
+                <td th:text="${user.updateDate != null ? #dates.format(user.updateDate, 'yyyy-MM-dd HH:mm') : ''}">2026-01-01</td>
+                <td>
+                    <i class="fas fa-edit btn-icon" th:onclick="|updateUser(${user.id})|"></i>
+                    <i class="fas fa-trash-alt btn-icon" th:onclick="|delUser(${user.id})|"></i>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="stats-info">
+        <i class="fas fa-info-circle"></i>
+        <span>&#20849; <span th:text="${userList == null ? 0 : userList.size()}">0</span> &#20301;&#29992;&#25143;</span>
+    </div>
+</div>
+
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'userMgmt' }, '*');
+
+    function delUser(id) {
+        if (confirm('确认删除这条用户记录？')) {
+            window.location.href = '/user/del?id=' + id;
+        }
+    }
+
+    function updateUser(id) {
+        window.location.href = '/user/updateView?id=' + id;
+    }
+
+    function queryUsers() {
+        const keyword = document.getElementById('searchInput').value;
+        window.location.href = '/user/userList?loginName=' + encodeURIComponent(keyword)
+            + '&realName=' + encodeURIComponent(keyword)
+            + '&phone=' + encodeURIComponent(keyword);
+    }
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>
+
+

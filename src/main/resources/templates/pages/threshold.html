@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&#20581;&#24247;&#25968;&#25454;&#38408;&#20540;&#35774;&#32622;</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: Arial, sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; overflow-x: hidden; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 500; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0, 0, 0, 0.04); padding: 20px; border: 1px solid #e9eef2; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+        .card-header h2 { font-size: 1.05rem; font-weight: 600; color: #1e3a5f; }
+        .threshold-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .threshold-item { background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; }
+        .threshold-title { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .threshold-title i { width: 26px; height: 26px; background: #eef2ff; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 0.9rem; }
+        .threshold-title h3 { font-size: 0.85rem; font-weight: 600; color: #1e293b; }
+        .threshold-inputs { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .input-group { flex: 1; min-width: 80px; }
+        .input-group label { display: block; font-size: 0.6rem; color: #64748b; margin-bottom: 3px; }
+        .input-group input { width: 100%; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.75rem; outline: none; }
+        .unit { font-size: 0.65rem; color: #64748b; margin-left: 3px; }
+        .range-display { margin-top: 10px; padding: 6px 10px; background: white; border-radius: 6px; font-size: 0.7rem; color: #475569; border: 1px dashed #cbd5e1; }
+        .range-display i { color: #2563eb; margin-right: 4px; font-size: 0.65rem; }
+        .warning-level { margin-top: 16px; padding: 12px; background: #fff7ed; border-radius: 10px; border-left: 3px solid #f97316; }
+        .warning-level h4 { font-size: 0.8rem; color: #9a3412; margin-bottom: 6px; }
+        .warning-level p { font-size: 0.7rem; color: #7b5e3b; }
+        .warning-options { display: flex; gap: 20px; flex-wrap: wrap; margin: 8px 0; }
+        .warning-options label { display: flex; align-items: center; gap: 4px; font-size: 0.7rem; color: #475569; }
+        .action-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+        .btn-primary, .btn-secondary { border: none; font-weight: 500; padding: 6px 18px; border-radius: 32px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; text-decoration: none; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-secondary { background: white; border: 1px solid #e2e8f0; color: #475569; }
+        .status-bar { margin-top: 16px; background: #dbeafe; border-radius: 12px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 0.75rem; color: #1e3a8a; }
+        .status-bar i { color: #2563eb; font-size: 1.1rem; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-sliders-h"></i> &#20581;&#24247;&#25968;&#25454;&#38408;&#20540;&#35774;&#32622;</h1>
+</div>
+
+<form class="card" action="/hdt/update" method="post">
+    <input type="hidden" name="id" th:value="${hdt.id}">
+    <div class="card-header">
+        <h2><i class="fas fa-heartbeat"></i> &#20581;&#24247;&#25351;&#26631;&#38408;&#20540;&#37197;&#32622;</h2>
+        <span style="color: #64748b; font-size: 0.7rem;">&#20462;&#25913;&#21518;&#31435;&#21363;&#29983;&#25928;</span>
+    </div>
+
+    <div class="threshold-grid">
+        <div class="threshold-item">
+            <div class="threshold-title"><i class="fas fa-heart"></i><h3>&#34880;&#21387; (Blood Pressure)</h3></div>
+            <div class="threshold-inputs">
+                <div class="input-group">
+                    <label>&#25910;&#32553;&#21387;&#19978;&#38480;</label>
+                    <input type="number" name="bloodPressureHigh" th:value="${hdt.bloodPressureHigh}" min="100" max="200" step="0.1">
+                    <span class="unit">mmHg</span>
+                </div>
+                <div class="input-group">
+                    <label>&#33298;&#24352;&#21387;&#19978;&#38480;</label>
+                    <input type="number" name="bloodPressureLow" th:value="${hdt.bloodPressureLow}" min="60" max="120" step="0.1">
+                    <span class="unit">mmHg</span>
+                </div>
+            </div>
+            <div class="range-display">
+                <i class="fas fa-info-circle"></i> 正常范围：< 140/90 mmHg
+            </div>
+        </div>
+
+        <div class="threshold-item">
+            <div class="threshold-title"><i class="fas fa-tint"></i><h3>&#34880;&#31958; (Blood Glucose)</h3></div>
+            <div class="threshold-inputs">
+                <div class="input-group">
+                    <label>&#34880;&#31958;&#19978;&#38480;</label>
+                    <input type="number" name="bloodGlucoseHigh" th:value="${hdt.bloodGlucoseHigh}" min="3.0" max="20.0" step="0.1">
+                    <span class="unit">mmol/L</span>
+                </div>
+                <div class="input-group">
+                    <label>&#34880;&#31958;&#19979;&#38480;</label>
+                    <input type="number" name="bloodGlucoseLow" th:value="${hdt.bloodGlucoseLow}" min="2.0" max="10.0" step="0.1">
+                    <span class="unit">mmol/L</span>
+                </div>
+            </div>
+            <div class="range-display">
+                <i class="fas fa-info-circle"></i> 空腹 < 7.0，餐后 < 11.1
+            </div>
+        </div>
+
+        <div class="threshold-item">
+            <div class="threshold-title"><i class="fas fa-heartbeat"></i><h3>&#24515;&#29575; (Heart Rate)</h3></div>
+            <div class="threshold-inputs">
+                <div class="input-group">
+                    <label>&#19979;&#38480;</label>
+                    <input type="number" name="heartRatelow" th:value="${hdt.heartRatelow}" min="40" max="80">
+                    <span class="unit">bpm</span>
+                </div>
+                <div class="input-group">
+                    <label>&#19978;&#38480;</label>
+                    <input type="number" name="heartRatehigh" th:value="${hdt.heartRatehigh}" min="80" max="150">
+                    <span class="unit">bpm</span>
+                </div>
+            </div>
+            <div class="range-display">
+                <i class="fas fa-info-circle"></i> 正常范围：60 - 100 bpm
+            </div>
+        </div>
+
+        <div class="threshold-item">
+            <div class="threshold-title"><i class="fas fa-lungs"></i><h3>&#34880;&#27687; (SpO2)</h3></div>
+            <div class="threshold-inputs">
+                <div class="input-group">
+                    <label>&#19979;&#38480;</label>
+                    <input type="number" name="spo2" th:value="${hdt.spo2}" min="85" max="99">
+                    <span class="unit">%</span>
+                </div>
+            </div>
+            <div class="range-display">
+                <i class="fas fa-info-circle"></i> 正常值 ≥ 95%
+            </div>
+        </div>
+
+        <div class="threshold-item">
+            <div class="threshold-title"><i class="fas fa-thermometer-half"></i><h3>&#20307;&#28201; (Temperature)</h3></div>
+            <div class="threshold-inputs">
+                <div class="input-group">
+                    <label>&#19978;&#38480;</label>
+                    <input type="number" name="temperatureHigh" th:value="${hdt.temperatureHigh}" min="36.0" max="39.0" step="0.1">
+                    <span class="unit">&#8451;</span>
+                </div>
+                <div class="input-group">
+                    <label>&#19979;&#38480;</label>
+                    <input type="number" name="temperatureLow" th:value="${hdt.temperatureLow}" min="34.0" max="36.5" step="0.1">
+                    <span class="unit">&#8451;</span>
+                </div>
+            </div>
+            <div class="range-display">
+                <i class="fas fa-info-circle"></i> 正常范围：35.5 - 37.5 ℃
+            </div>
+        </div>
+
+        <div class="threshold-item">
+            <div class="threshold-title"><i class="fas fa-weight-scale"></i><h3>&#20307;&#37325;&#27874;&#21160; (Weight)</h3></div>
+            <div class="threshold-inputs">
+                <div class="input-group">
+                    <label>&#27874;&#21160;&#19978;&#38480;</label>
+                    <input type="number" name="weight" th:value="${hdt.weight}" min="0.5" max="5.0" step="0.1">
+                    <span class="unit">kg</span>
+                </div>
+            </div>
+            <div class="range-display">
+                <i class="fas fa-info-circle"></i> 周波动超过 ±2.0 kg 为异常
+            </div>
+        </div>
+    </div>
+
+    <div class="warning-level">
+        <h4><i class="fas fa-exclamation-triangle"></i> &#24322;&#24120;&#35686;&#21578;&#32423;&#21035;&#35774;&#32622;</h4>
+        <div class="warning-options">
+            <label><input type="radio" name="warningLevel" value="1" checked> &#36731;&#24494;&#24322;&#24120;&#65288;&#40644;&#33394;&#25552;&#37266;&#65289;</label>
+            <label><input type="radio" name="warningLevel" value="2"> &#20013;&#24230;&#24322;&#24120;&#65288;&#27225;&#33394;&#39044;&#35686;&#65289;</label>
+            <label><input type="radio" name="warningLevel" value="3"> &#20005;&#37325;&#24322;&#24120;&#65288;&#32418;&#33394;&#35686;&#25253;&#65289;</label>
+        </div>
+        <p>&#36830;&#32493;&#20004;&#27425;&#27979;&#37327;&#36229;&#20986;&#38408;&#20540;&#23558;&#21319;&#32423;&#35686;&#21578;&#32423;&#21035;</p>
+    </div>
+
+    <div class="action-buttons">
+        <a class="btn-secondary" href="/hdt/getOne"><i class="fas fa-undo"></i> &#21462;&#28040;</a>
+        <button class="btn-primary" type="submit"><i class="fas fa-save"></i> &#20445;&#23384;&#35774;&#32622;</button>
+    </div>
+</form>
+
+    <div class="status-bar">
+        <i class="fas fa-check-circle"></i>
+        <span>&#24403;&#21069;&#38408;&#20540;&#35774;&#32622;&#24050;&#21551;&#29992;</span>
+        <span th:if="${hdt.updateDate != null}" style="margin-left:auto;">
+            最终修改时间：<span th:text="${#dates.format(hdt.updateDate, 'yyyy-MM-dd HH:mm:ss')}">2026-06-17 20:00:00</span>
+        </span>
+    </div>
+
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'threshold' }, '*');
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

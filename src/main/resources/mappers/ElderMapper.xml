@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.ElderDao">
+    <select id="elderList" resultType="Elder">
+        select
+        id,name,birthday,gender,health_status healthStatus,
+        emergency_contact emergencyContact,relation,contact_number contactNumber
+        from t_elder
+        <where>
+            <if test="name != null and name != ''">
+                or name like concat('%',#{name},'%')
+            </if>
+            <if test="contactNumber != null and contactNumber != ''">
+                or contact_number like concat('%',#{contactNumber},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getById" resultType="Elder">
+        select
+        id,name,birthday,gender,health_status healthStatus,
+        emergency_contact emergencyContact,relation,contact_number contactNumber
+        from t_elder
+        where
+        id = #{id}
+    </select>
+
+    <insert id="add">
+        insert into t_elder (name,birthday,gender,health_status,emergency_contact,relation,contact_number)
+        values(#{name},#{birthday},#{gender},#{healthStatus},#{emergencyContact},#{relation},#{contactNumber})
+    </insert>
+
+    <update id="update">
+        update t_elder set
+        name = #{name},
+        birthday = #{birthday},
+        gender = #{gender},
+        health_status = #{healthStatus},
+        emergency_contact = #{emergencyContact},
+        relation = #{relation},
+        contact_number = #{contactNumber},
+        update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_elder where id = #{id}
+    </delete>
+</mapper>

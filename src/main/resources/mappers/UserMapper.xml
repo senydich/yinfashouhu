@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.UserDao">
+    <sql id="BaseColumnList">
+        id,
+        login_name loginName,
+        password,
+        real_name realName,
+        job,
+        sex,
+        phone,
+        email,
+        status,
+        create_date createDate,
+        update_date updateDate
+    </sql>
+
+    <select id="userList" resultType="User">
+        select
+        <include refid="BaseColumnList"/>
+        from t_user
+        <where>
+            <if test="loginName != null and loginName != ''">
+                login_name like concat('%', #{loginName}, '%')
+            </if>
+            <if test="realName != null and realName != ''">
+                or real_name like concat('%', #{realName}, '%')
+            </if>
+            <if test="phone != null and phone != ''">
+                or phone like concat('%', #{phone}, '%')
+            </if>
+        </where>
+        order by id desc
+    </select>
+
+    <select id="getUserByLoginName" resultType="User">
+        select
+        <include refid="BaseColumnList"/>
+        from t_user
+        where login_name = #{loginName}
+    </select>
+
+    <select id="getById" resultType="User">
+        select
+        <include refid="BaseColumnList"/>
+        from t_user
+        where id = #{id}
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_user
+        (login_name, password, real_name, job, sex, phone, email, status, create_date, update_date)
+        values
+        (#{loginName}, #{password}, #{realName}, #{job}, #{sex}, #{phone}, #{email}, #{status}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_user set
+            login_name = #{loginName},
+            password = #{password},
+            real_name = #{realName},
+            job = #{job},
+            sex = #{sex},
+            phone = #{phone},
+            email = #{email},
+            status = #{status},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_user where id = #{id}
+    </delete>
+</mapper>

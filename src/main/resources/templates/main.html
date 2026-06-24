@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>银发守护 - 管理后台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-soft: #eff6ff;
+            --accent-border: #bfdbfe;
+        }
+        body[data-accent="teal"] {
+            --accent: #0f9488;
+            --accent-hover: #0f766e;
+            --accent-soft: #ecfdf5;
+            --accent-border: #99f6e4;
+        }
+        body[data-accent="green"] {
+            --accent: #16a34a;
+            --accent-hover: #15803d;
+            --accent-soft: #f0fdf4;
+            --accent-border: #bbf7d0;
+        }
+        body[data-accent="indigo"] {
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-soft: #eef2ff;
+            --accent-border: #c7d2fe;
+        }
+        body[data-accent="rose"] {
+            --accent: #e11d48;
+            --accent-hover: #be123c;
+            --accent-soft: #fff1f2;
+            --accent-border: #fecdd3;
+        }
+        body[data-accent="amber"] {
+            --accent: #d97706;
+            --accent-hover: #b45309;
+            --accent-soft: #fffbeb;
+            --accent-border: #fde68a;
+        }
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: #f4f7fb;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+        }
+        body.theme-dark { background: #0f172a; }
+        .app-frame {
+            display: grid;
+            grid-template-rows: 58px minmax(0, 1fr);
+            height: 100vh;
+            width: 100vw;
+        }
+        .top-frame {
+            background: #fff;
+            border-bottom: 1px solid #dbe4ee;
+            z-index: 10;
+            box-shadow: 0 1px 0 rgba(15, 23, 42, .03);
+        }
+        .middle-container {
+            display: grid;
+            grid-template-columns: 224px minmax(0, 1fr);
+            min-height: 0;
+            transition: grid-template-columns .18s ease;
+        }
+        .app-frame.sidebar-collapsed .middle-container { grid-template-columns: 68px minmax(0, 1fr); }
+        .left-frame {
+            background: #fff;
+            border-right: 1px solid #dbe4ee;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .center-frame {
+            min-width: 0;
+            background: linear-gradient(180deg, #f8fbff 0%, #f4f7fb 220px);
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+        }
+        .sidebar-toggle {
+            position: fixed;
+            top: 72px;
+            left: 208px;
+            width: 30px;
+            height: 30px;
+            border: 1px solid #dbe4ee;
+            border-radius: 12px;
+            background: #fff;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
+            transition: left .18s ease, color .15s, border-color .15s, transform .15s;
+        }
+        .sidebar-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .sidebar-toggle i { font-size: .78rem; transition: transform .18s ease; }
+        .app-frame.sidebar-collapsed .sidebar-toggle { left: 52px; }
+        .app-frame.sidebar-collapsed .sidebar-toggle i { transform: rotate(180deg); }
+        .loading-overlay {
+            position: fixed;
+            top: 58px;
+            left: 224px;
+            right: 0;
+            bottom: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(244, 247, 251, .72);
+            pointer-events: none;
+            z-index: 15;
+            transition: left .18s ease;
+        }
+        .app-frame.sidebar-collapsed ~ .loading-overlay { left: 68px; }
+        .loading-overlay.active { display: flex; }
+        .spinner {
+            width: 34px;
+            height: 34px;
+            border: 3px solid #dbe4ee;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .notification-overlay {
+            display: none;
+            position: fixed;
+            top: 66px;
+            right: 18px;
+            width: 380px;
+            max-width: calc(100vw - 24px);
+            background: #fff;
+            border: 1px solid #dbe4ee;
+            border-radius: 16px;
+            box-shadow: 0 18px 38px rgba(15, 23, 42, .14);
+            overflow: hidden;
+            z-index: 30;
+        }
+        .notification-overlay.open { display: block; }
+        .notify-header {
+            padding: 15px 16px 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .notify-header strong { display: block; color: #0f172a; font-size: .94rem; margin-bottom: 4px; }
+        .notify-header span { color: #64748b; font-size: .72rem; }
+        .notify-summary { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: .66rem;
+            white-space: nowrap;
+        }
+        .summary-chip.high { background: #fee2e2; color: #b91c1c; }
+        .summary-chip.pending { background: #fff7ed; color: #c2410c; }
+        .notify-list { max-height: 248px; overflow-y: auto; }
+        .notify-item {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fff;
+            text-align: left;
+            display: grid;
+            grid-template-columns: 32px 1fr auto;
+            gap: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+        }
+        .notify-item:hover { background: #f8fafc; }
+        .notify-item.read { opacity: .66; }
+        .notify-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: .82rem;
+        }
+        .type-fall { background: #dc2626; }
+        .type-health { background: #d97706; }
+        .type-reminder { background: var(--accent); }
+        .type-dialog { background: #7c3aed; }
+        .notify-title { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .notify-title strong { color: #0f172a; font-size: .8rem; }
+        .unread-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; }
+        .notify-content { display: block; color: #475569; font-size: .72rem; line-height: 1.45; max-height: 34px; overflow: hidden; }
+        .notify-meta { display: block; color: #94a3b8; font-size: .68rem; margin-top: 5px; }
+        .level-tag { padding: 3px 7px; font-size: .64rem; height: fit-content; white-space: nowrap; }
+        .level-tag,
+        .notify-action {
+            border-radius: 12px;
+        }
+        .level-tag.high { background: #fee2e2; color: #b91c1c; }
+        .level-tag.medium { background: #fff7ed; color: #c2410c; }
+        .level-tag.low { background: #e0f2fe; color: #0369a1; }
+        .notify-empty { padding: 28px 16px; text-align: center; color: #64748b; font-size: .8rem; }
+        .notify-empty i { display: block; margin-bottom: 8px; color: #94a3b8; font-size: 1.3rem; }
+        .notify-actions { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; background: #f8fafc; }
+        .notify-action {
+            border: 1px solid #dbe4ee;
+            background: #fff;
+            color: #334155;
+            padding: 6px 12px;
+            font-size: .72rem;
+            cursor: pointer;
+        }
+        .notify-action.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .accent-overlay {
+            display: none;
+            position: fixed;
+            top: 66px;
+            right: 178px;
+            width: 238px;
+            padding: 13px;
+            background: #fff;
+            border: 1px solid #dbe4ee;
+            border-radius: 16px;
+            box-shadow: 0 18px 38px rgba(15, 23, 42, .14);
+            z-index: 32;
+        }
+        .accent-overlay.open { display: block; }
+        .accent-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 11px;
+        }
+        .accent-head strong {
+            color: #0f172a;
+            font-size: .84rem;
+        }
+        .accent-head span {
+            color: #64748b;
+            font-size: .68rem;
+        }
+        .accent-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .accent-option {
+            min-height: 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            color: #334155;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 8px;
+            font-size: .72rem;
+            font-weight: 700;
+        }
+        .accent-option:hover,
+        .accent-option.active {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .accent-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--dot);
+            flex: 0 0 auto;
+        }
+        body.theme-dark .top-frame,
+        body.theme-dark .left-frame { background: #111827; border-color: #243244; }
+        body.theme-dark .center-frame { background: #0f172a; }
+        body.theme-dark .sidebar-toggle { background: #1f2937; border-color: #334155; color: #cbd5e1; }
+        body.theme-dark .loading-overlay { background: rgba(15, 23, 42, .72); }
+        body.theme-dark .notification-overlay,
+        body.theme-dark .notify-item { background: #111827; border-color: #334155; }
+        body.theme-dark .notify-header,
+        body.theme-dark .notify-actions { background: #111827; border-color: #243244; }
+        body.theme-dark .notify-item:hover { background: #162033; }
+        body.theme-dark .notify-header strong,
+        body.theme-dark .notify-title strong { color: #e5e7eb; }
+        body.theme-dark .notify-header span,
+        body.theme-dark .notify-content,
+        body.theme-dark .notify-meta,
+        body.theme-dark .notify-empty { color: #94a3b8; }
+        body.theme-dark .summary-chip,
+        body.theme-dark .notify-action { background: #1f2937; border-color: #334155; color: #cbd5e1; }
+        body.theme-dark .accent-overlay { background: #111827; border-color: #334155; }
+        body.theme-dark .accent-head strong { color: #e5e7eb; }
+        body.theme-dark .accent-head span { color: #94a3b8; }
+        body.theme-dark .accent-option { background: #1f2937; border-color: #334155; color: #cbd5e1; }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="app-frame" id="appFrame">
+    <div class="top-frame">
+        <iframe src="/top" name="topFrame" id="topFrame" title="顶部导航" scrolling="no"></iframe>
+    </div>
+    <div class="middle-container">
+        <div class="left-frame">
+            <iframe src="/left" name="leftFrame" id="leftFrame" title="侧边菜单"></iframe>
+        </div>
+        <div class="center-frame">
+            <iframe src="/dashboard" name="centerFrame" id="centerFrame" title="主要内容"></iframe>
+        </div>
+    </div>
+    <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="收起侧边栏" aria-expanded="true" title="收起侧边栏">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
+
+<div class="notification-overlay" id="globalNotificationPanel">
+    <div class="notify-header">
+        <div>
+            <strong>通知中心</strong>
+            <span>聚合跌倒、健康、提醒和对话异常</span>
+        </div>
+        <div class="notify-summary">
+            <span class="summary-chip high">高优先级 <span id="globalHighCount">0</span></span>
+            <span class="summary-chip pending">待处理 <span id="globalPendingCount">0</span></span>
+        </div>
+    </div>
+    <div class="notify-list" id="globalNotificationList"></div>
+    <div class="notify-actions">
+        <button class="notify-action" type="button" onclick="markGlobalNotificationsRead()">标记已读</button>
+        <button class="notify-action primary" type="button" onclick="openGlobalNotificationUrl('/record/eventList')">查看全部</button>
+    </div>
+</div>
+
+<div class="accent-overlay" id="accentOverlay">
+    <div class="accent-head">
+        <div>
+            <strong>主题颜色</strong>
+            <span>选择后台强调色</span>
+        </div>
+        <i class="fas fa-palette"></i>
+    </div>
+    <div class="accent-grid">
+        <button class="accent-option" type="button" data-accent="blue" onclick="setAccentTheme('blue')"><span class="accent-dot" style="--dot:#2563eb"></span>蓝色</button>
+        <button class="accent-option" type="button" data-accent="teal" onclick="setAccentTheme('teal')"><span class="accent-dot" style="--dot:#0f9488"></span>青绿</button>
+        <button class="accent-option" type="button" data-accent="green" onclick="setAccentTheme('green')"><span class="accent-dot" style="--dot:#16a34a"></span>绿色</button>
+        <button class="accent-option" type="button" data-accent="indigo" onclick="setAccentTheme('indigo')"><span class="accent-dot" style="--dot:#4f46e5"></span>靛蓝</button>
+        <button class="accent-option" type="button" data-accent="rose" onclick="setAccentTheme('rose')"><span class="accent-dot" style="--dot:#e11d48"></span>玫红</button>
+        <button class="accent-option" type="button" data-accent="amber" onclick="setAccentTheme('amber')"><span class="accent-dot" style="--dot:#d97706"></span>琥珀</button>
+    </div>
+</div>
+
+<script>
+    let currentNotifications = [];
+    const SIDEBAR_STORAGE_KEY = 'silverGuardSidebarCollapsed';
+
+    function isSidebarCollapsed() {
+        return localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true';
+    }
+
+    function notifyLeftSidebar(collapsed) {
+        const leftFrame = document.getElementById('leftFrame');
+        if (leftFrame && leftFrame.contentWindow) {
+            leftFrame.contentWindow.postMessage({ type: 'sidebarCollapse', collapsed: collapsed }, '*');
+        }
+    }
+
+    function applySidebarState(collapsed) {
+        const appFrame = document.getElementById('appFrame');
+        const toggle = document.getElementById('sidebarToggle');
+        appFrame.classList.toggle('sidebar-collapsed', collapsed);
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        toggle.setAttribute('aria-label', collapsed ? '展开侧边栏' : '收起侧边栏');
+        toggle.setAttribute('title', collapsed ? '展开侧边栏' : '收起侧边栏');
+        notifyLeftSidebar(collapsed);
+    }
+
+    function setSidebarCollapsed(collapsed) {
+        localStorage.setItem(SIDEBAR_STORAGE_KEY, collapsed ? 'true' : 'false');
+        applySidebarState(collapsed);
+    }
+
+    function currentTheme() {
+        return localStorage.getItem('theme') || 'light';
+    }
+
+    function currentAccent() {
+        return localStorage.getItem('accentTheme') || 'blue';
+    }
+
+    function applyAccent(accent) {
+        document.body.dataset.accent = accent || 'blue';
+        document.querySelectorAll('.accent-option').forEach(function(option) {
+            option.classList.toggle('active', option.dataset.accent === (accent || 'blue'));
+        });
+        ['topFrame', 'leftFrame', 'centerFrame'].forEach(function(frameId) {
+            const frame = document.getElementById(frameId);
+            if (frame && frame.contentWindow) {
+                frame.contentWindow.postMessage({ type: 'accentApply', accent: accent || 'blue' }, '*');
+                applyFrameAccent(frame, accent || 'blue');
+            }
+        });
+    }
+
+    function openAccentOverlay(open) {
+        const overlay = document.getElementById('accentOverlay');
+        overlay.classList.toggle('open', !!open);
+        const topFrame = document.getElementById('topFrame');
+        if (topFrame && topFrame.contentWindow) {
+            topFrame.contentWindow.postMessage({ type: 'accentPanelState', open: !!open }, '*');
+        }
+    }
+
+    function setAccentTheme(accent) {
+        localStorage.setItem('accentTheme', accent || 'blue');
+        applyAccent(accent || 'blue');
+        openAccentOverlay(false);
+    }
+
+    function applyTheme(theme) {
+        document.body.classList.toggle('theme-dark', theme === 'dark');
+        ['topFrame', 'leftFrame', 'centerFrame'].forEach(function(frameId) {
+            const frame = document.getElementById(frameId);
+            if (frame && frame.contentWindow) {
+                frame.contentWindow.postMessage({ type: 'themeApply', theme: theme }, '*');
+                applyFrameTheme(frame, theme);
+            }
+        });
+    }
+
+    function applyFrameAccent(frame, accent) {
+        try {
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            if (doc && doc.body) {
+                doc.body.dataset.accent = accent || 'blue';
+            }
+        } catch (e) {
+            // Frame may still be loading.
+        }
+    }
+
+    function applyFrameTheme(frame, theme) {
+        try {
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            if (!doc || !doc.head || !doc.body) {
+                return;
+            }
+            const usesAdminCss = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'))
+                .some(function(linkNode) {
+                    return linkNode.getAttribute('href') === '/css/admin.css';
+                });
+            let link = doc.getElementById('runtimeDarkThemeCss');
+            if (!usesAdminCss && !link) {
+                link = doc.createElement('link');
+                link.id = 'runtimeDarkThemeCss';
+                link.rel = 'stylesheet';
+                link.href = '/css/dark-theme.css';
+                doc.head.appendChild(link);
+            } else if (usesAdminCss && link) {
+                link.remove();
+            }
+            if (frame.id === 'centerFrame') {
+                const hasPolishCss = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'))
+                    .some(function(linkNode) {
+                        return linkNode.getAttribute('href') === '/css/ui-polish.css';
+                });
+                if (!hasPolishCss && !doc.getElementById('runtimeUiPolishCss')) {
+                    const polishLink = doc.createElement('link');
+                    polishLink.id = 'runtimeUiPolishCss';
+                    polishLink.rel = 'stylesheet';
+                    polishLink.href = '/css/ui-polish.css';
+                    doc.head.appendChild(polishLink);
+                }
+            }
+            doc.body.classList.toggle('theme-dark', theme === 'dark');
+            doc.body.dataset.accent = currentAccent();
+        } catch (e) {
+            // Frame may still be loading.
+        }
+    }
+
+    function bindFrame(frameId) {
+        const frame = document.getElementById(frameId);
+        if (!frame) {
+            return;
+        }
+        frame.onload = function() {
+            applyTheme(currentTheme());
+            applyAccent(currentAccent());
+            if (frameId === 'leftFrame') {
+                notifyLeftSidebar(isSidebarCollapsed());
+            }
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('active');
+            }
+        };
+    }
+
+    function readNotificationIds() {
+        try {
+            return JSON.parse(localStorage.getItem('silverGuardReadNotifications') || '[]');
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveNotificationIds(ids) {
+        localStorage.setItem('silverGuardReadNotifications', JSON.stringify(Array.from(new Set(ids))));
+    }
+
+    function escapeHtml(text) {
+        return String(text || '').replace(/[&<>"']/g, function(ch) {
+            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+        });
+    }
+
+    function levelText(level) {
+        return level === 'HIGH' ? '高' : (level === 'MEDIUM' ? '中' : '低');
+    }
+
+    function typeIcon(type) {
+        if (type === 'FALL') return 'fas fa-person-falling';
+        if (type === 'HEALTH') return 'fas fa-heart-pulse';
+        if (type === 'REMINDER') return 'fas fa-clock';
+        return 'fas fa-comments';
+    }
+
+    function typeClass(type) {
+        if (type === 'FALL') return 'type-fall';
+        if (type === 'HEALTH') return 'type-health';
+        if (type === 'REMINDER') return 'type-reminder';
+        return 'type-dialog';
+    }
+
+    function renderGlobalNotifications(payload) {
+        currentNotifications = payload.notifications || [];
+        document.getElementById('globalHighCount').textContent = String(payload.highCount || 0);
+        document.getElementById('globalPendingCount').textContent = String(payload.pendingCount || 0);
+
+        const readIds = readNotificationIds();
+        const list = document.getElementById('globalNotificationList');
+        if (!currentNotifications.length) {
+            list.innerHTML = '<div class="notify-empty"><i class="far fa-bell-slash"></i>暂无新的业务通知</div>';
+            return;
+        }
+
+        list.innerHTML = currentNotifications.map(function(item) {
+            const read = readIds.indexOf(item.id) >= 0;
+            const levelClass = String(item.level || 'LOW').toLowerCase();
+            return '<button class="notify-item' + (read ? ' read' : '') + '" type="button" data-id="' + escapeHtml(item.id) + '" data-url="' + escapeHtml(item.url || '/record/eventList') + '" onclick="openGlobalNotification(this)">' +
+                '<span class="notify-icon ' + typeClass(item.type) + '"><i class="' + typeIcon(item.type) + '"></i></span>' +
+                '<span><span class="notify-title">' + (read ? '' : '<span class="unread-dot"></span>') + '<strong>' + escapeHtml(item.title) + '</strong></span>' +
+                '<span class="notify-content">' + escapeHtml(item.content) + '</span>' +
+                '<span class="notify-meta">' + escapeHtml(item.time) + '</span></span>' +
+                '<span class="level-tag ' + levelClass + '">' + levelText(item.level) + '</span>' +
+                '</button>';
+        }).join('');
+    }
+
+    function setGlobalNotificationPanel(open, payload) {
+        const panel = document.getElementById('globalNotificationPanel');
+        if (payload) {
+            renderGlobalNotifications(payload);
+        }
+        panel.classList.toggle('open', open);
+    }
+
+    function closeGlobalNotifications() {
+        setGlobalNotificationPanel(false);
+        const topFrame = document.getElementById('topFrame');
+        if (topFrame && topFrame.contentWindow) {
+            topFrame.contentWindow.postMessage({ type: 'notificationClose' }, '*');
+        }
+    }
+
+    function markGlobalNotificationsRead() {
+        const ids = readNotificationIds();
+        currentNotifications.forEach(function(item) {
+            ids.push(item.id);
+        });
+        saveNotificationIds(ids);
+        renderGlobalNotifications({
+            notifications: currentNotifications,
+            highCount: document.getElementById('globalHighCount').textContent,
+            pendingCount: document.getElementById('globalPendingCount').textContent
+        });
+        const topFrame = document.getElementById('topFrame');
+        if (topFrame && topFrame.contentWindow) {
+            topFrame.contentWindow.postMessage({ type: 'notificationRead' }, '*');
+        }
+    }
+
+    function openGlobalNotification(item) {
+        const ids = readNotificationIds();
+        ids.push(item.dataset.id);
+        saveNotificationIds(ids);
+        openGlobalNotificationUrl(item.dataset.url || '/record/eventList');
+    }
+
+    function openGlobalNotificationUrl(url) {
+        closeGlobalNotifications();
+        const centerFrame = document.getElementById('centerFrame');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (centerFrame) {
+            loadingOverlay.classList.add('active');
+            centerFrame.src = url;
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const panel = document.getElementById('globalNotificationPanel');
+        const accentOverlay = document.getElementById('accentOverlay');
+        if (!panel.contains(event.target)) {
+            closeGlobalNotifications();
+        }
+        if (accentOverlay && !accentOverlay.contains(event.target)) {
+            openAccentOverlay(false);
+        }
+    });
+
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'navigate') {
+            closeGlobalNotifications();
+            const page = event.data.page;
+            const centerFrame = document.getElementById('centerFrame');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (centerFrame && page && page !== '#') {
+                loadingOverlay.classList.add('active');
+                centerFrame.src = page;
+            }
+            return;
+        }
+
+        if (event.data && event.data.type === 'themeChange') {
+            localStorage.setItem('theme', event.data.theme);
+            applyTheme(event.data.theme);
+            return;
+        }
+
+        if (event.data && event.data.type === 'accentChange') {
+            localStorage.setItem('accentTheme', event.data.accent || 'blue');
+            applyAccent(event.data.accent || 'blue');
+            return;
+        }
+
+        if (event.data && event.data.type === 'accentPanel') {
+            openAccentOverlay(!!event.data.open);
+            return;
+        }
+
+        if (event.data && event.data.type === 'notificationPanel') {
+            setGlobalNotificationPanel(!!event.data.open, event.data);
+        }
+
+        if (event.data && event.data.type === 'sidebarExpand') {
+            setSidebarCollapsed(false);
+        }
+    });
+
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+        setSidebarCollapsed(!isSidebarCollapsed());
+    });
+
+    bindFrame('topFrame');
+    bindFrame('leftFrame');
+    bindFrame('centerFrame');
+    applyTheme(currentTheme());
+    applyAccent(currentAccent());
+    applySidebarState(isSidebarCollapsed());
+</script>
+</body>
+</html>

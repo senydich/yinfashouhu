@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>银发守护 - 顶部导航</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-soft: #eff6ff;
+            --accent-border: #bfdbfe;
+        }
+        body[data-accent="teal"] { --accent: #0f9488; --accent-hover: #0f766e; --accent-soft: #ecfdf5; --accent-border: #99f6e4; }
+        body[data-accent="green"] { --accent: #16a34a; --accent-hover: #15803d; --accent-soft: #f0fdf4; --accent-border: #bbf7d0; }
+        body[data-accent="indigo"] { --accent: #4f46e5; --accent-hover: #4338ca; --accent-soft: #eef2ff; --accent-border: #c7d2fe; }
+        body[data-accent="rose"] { --accent: #e11d48; --accent-hover: #be123c; --accent-soft: #fff1f2; --accent-border: #fecdd3; }
+        body[data-accent="amber"] { --accent: #d97706; --accent-hover: #b45309; --accent-soft: #fffbeb; --accent-border: #fde68a; }
+        html, body { width: 100%; height: 58px; overflow: hidden; }
+        body {
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background: #fff;
+            color: #0f172a;
+        }
+        .top-bar {
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 0 22px;
+            background: #fff;
+            border-bottom: 1px solid #dbe4ee;
+        }
+        .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+        .brand-icon {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent);
+            color: #fff;
+            border-radius: 12px;
+        }
+        .brand-text { min-width: 0; }
+        .brand-name { display: block; color: #10233f; font-size: 1.02rem; font-weight: 700; line-height: 1.1; }
+        .brand-subtitle { display: block; color: #64748b; font-size: .7rem; margin-top: 3px; }
+        .actions { display: flex; align-items: center; gap: 10px; }
+        .datetime {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            min-height: 32px;
+            padding: 0 11px;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            border-radius: 12px;
+            color: #475569;
+            font-size: .76rem;
+            white-space: nowrap;
+        }
+        .datetime i { color: var(--accent); }
+        .icon-button {
+            position: relative;
+            width: 34px;
+            height: 34px;
+            border: 1px solid #dbe4ee;
+            border-radius: 12px;
+            background: #fff;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
+        }
+        .icon-button:hover,
+        .icon-button.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-soft);
+            transform: translateY(-1px);
+        }
+        .badge-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border: 2px solid #fff;
+            border-radius: 999px;
+            background: #dc2626;
+            color: #fff;
+            font-size: .62rem;
+            line-height: 14px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-height: 34px;
+            padding: 0 11px;
+            border: 1px solid #dbe4ee;
+            border-radius: 12px;
+            background: #fff;
+            color: #334155;
+            cursor: pointer;
+            font-size: .76rem;
+            font-weight: 700;
+            transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s ease;
+        }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); transform: translateY(-1px); }
+        .accent-wrap { position: relative; }
+        .user-box {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 36px;
+            padding: 4px 10px 4px 5px;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            border-radius: 14px;
+        }
+        .avatar {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #dbeafe;
+            color: var(--accent);
+            border-radius: 10px;
+        }
+        .user-meta { display: flex; flex-direction: column; min-width: 86px; }
+        .user-name { color: #1e293b; font-weight: 700; font-size: .78rem; line-height: 1.15; }
+        .user-role { color: #64748b; font-size: .66rem; margin-top: 2px; }
+        .logout {
+            border: 0;
+            background: transparent;
+            color: #dc2626;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+        }
+        .logout:hover { background: #fee2e2; }
+        body.theme-dark { background: #111827; color: #e5e7eb; }
+        body.theme-dark {
+            --accent-soft: #172554;
+            --accent-border: #1d4ed8;
+        }
+        body.theme-dark[data-accent="teal"] { --accent-soft: #123b3a; --accent-border: #0f9488; }
+        body.theme-dark[data-accent="green"] { --accent-soft: #12371f; --accent-border: #16a34a; }
+        body.theme-dark[data-accent="indigo"] { --accent-soft: #242054; --accent-border: #4f46e5; }
+        body.theme-dark[data-accent="rose"] { --accent-soft: #4a1624; --accent-border: #e11d48; }
+        body.theme-dark[data-accent="amber"] { --accent-soft: #422b0b; --accent-border: #d97706; }
+        body.theme-dark .top-bar { background: #111827; border-color: #243244; }
+        body.theme-dark .brand-name { color: #f8fafc; }
+        body.theme-dark .brand-subtitle,
+        body.theme-dark .datetime,
+        body.theme-dark .user-role { color: #94a3b8; }
+        body.theme-dark .datetime,
+        body.theme-dark .icon-button,
+        body.theme-dark .theme-toggle,
+        body.theme-dark .user-box {
+            background: #1f2937;
+            border-color: #334155;
+            color: #cbd5e1;
+        }
+        body.theme-dark .icon-button:hover,
+        body.theme-dark .icon-button.active,
+        body.theme-dark .theme-toggle:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            color: #bfdbfe;
+        }
+        body.theme-dark .avatar { background: var(--accent-soft); color: #bfdbfe; }
+        body.theme-dark .user-name { color: #e5e7eb; }
+        @media (max-width: 760px) {
+            .top-bar { padding: 0 14px; gap: 10px; }
+            .datetime { display: none; }
+            .brand-subtitle { display: none; }
+            .theme-toggle span { display: none; }
+            .user-meta { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="top-bar">
+    <div class="brand">
+        <div class="brand-icon"><i class="fas fa-heart-pulse"></i></div>
+        <div class="brand-text">
+            <span class="brand-name">银发守护</span>
+            <span class="brand-subtitle">智慧养老看护后台</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <div class="datetime">
+            <i class="far fa-calendar"></i>
+            <span id="dateDisplay">--</span>
+            <i class="far fa-clock"></i>
+            <span id="timeDisplay">--:--:--</span>
+        </div>
+
+        <button class="icon-button" id="notificationButton" type="button" onclick="toggleNotifications()" aria-label="通知中心" aria-expanded="false" title="通知中心">
+            <i class="far fa-bell"></i>
+            <span class="badge-count" id="notificationCount" th:if="${notificationUnreadCount != null and notificationUnreadCount > 0}" th:text="${notificationUnreadCount > 99 ? '99+' : notificationUnreadCount}">0</span>
+        </button>
+
+        <button class="theme-toggle" type="button" onclick="toggleTheme()" title="切换主题">
+            <i class="fas fa-moon" id="themeIcon"></i>
+            <span id="themeText">夜间</span>
+        </button>
+
+        <div class="accent-wrap">
+            <button class="icon-button" id="accentButton" type="button" onclick="toggleAccentPanel()" aria-label="切换主题颜色" aria-expanded="false" title="切换主题颜色">
+                <i class="fas fa-palette"></i>
+            </button>
+        </div>
+
+        <div class="user-box">
+            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="user-meta">
+                <span class="user-name" th:text="${currentUserName}">未登录</span>
+                <span class="user-role" th:text="${currentUserRole}">用户</span>
+            </div>
+            <button class="logout" type="button" onclick="logout()" title="退出登录" aria-label="退出登录">
+                <i class="fas fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<div id="notificationData" style="display:none;">
+    <button class="notify-source"
+            type="button"
+            th:each="item : ${notificationList}"
+            th:attr="data-id=${item.id},data-url=${item.sourceUrl},data-type=${item.eventType},data-level=${item.eventLevel},data-title=${item.eventTitle},data-content=${item.elderName != null ? item.elderName + '：' + item.eventContent : item.eventContent},data-time=${item.eventTime != null ? #dates.format(item.eventTime, 'MM-dd HH:mm') : '时间未记录'},data-important=${item.eventLevel == 'HIGH' or item.eventStatus == 'PENDING'}">
+    </button>
+</div>
+<span id="notificationHighValue" style="display:none;" th:text="${notificationHighCount}">0</span>
+<span id="notificationPendingValue" style="display:none;" th:text="${notificationPendingCount}">0</span>
+
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        document.getElementById('dateDisplay').textContent = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()} ${weekdays[now.getDay()]}`;
+        document.getElementById('timeDisplay').textContent =
+            `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+    }
+
+    function logout() {
+        window.parent.location.href = '/logout';
+    }
+
+    function applyTheme(theme) {
+        const isDark = theme === 'dark';
+        document.body.classList.toggle('theme-dark', isDark);
+        document.getElementById('themeIcon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        document.getElementById('themeText').textContent = isDark ? '日间' : '夜间';
+    }
+
+    function applyAccent(accent) {
+        const nextAccent = accent || 'blue';
+        document.body.dataset.accent = nextAccent;
+    }
+
+    function toggleAccentPanel() {
+        const button = document.getElementById('accentButton');
+        const open = !button.classList.contains('active');
+        button.classList.toggle('active', open);
+        button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        window.parent.postMessage({ type: 'accentPanel', open: open }, '*');
+    }
+
+    function closeAccentPanel() {
+        const button = document.getElementById('accentButton');
+        button.classList.remove('active');
+        button.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleTheme() {
+        const theme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', theme);
+        applyTheme(theme);
+        window.parent.postMessage({ type: 'themeChange', theme: theme }, '*');
+    }
+
+    function readNotificationIds() {
+        try {
+            return JSON.parse(localStorage.getItem('silverGuardReadNotifications') || '[]');
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveNotificationIds(ids) {
+        localStorage.setItem('silverGuardReadNotifications', JSON.stringify(Array.from(new Set(ids))));
+    }
+
+    function notificationItems() {
+        return Array.from(document.querySelectorAll('.notify-source')).map(function(item) {
+            return {
+                id: item.dataset.id,
+                url: item.dataset.url,
+                type: item.dataset.type,
+                level: item.dataset.level,
+                title: item.dataset.title,
+                content: item.dataset.content,
+                time: item.dataset.time,
+                important: item.dataset.important === 'true'
+            };
+        });
+    }
+
+    function updateNotificationState() {
+        const readIds = readNotificationIds();
+        const items = notificationItems();
+        let unread = 0;
+        items.forEach(function(item) {
+            if (readIds.indexOf(item.id) < 0 && item.important) {
+                unread++;
+            }
+        });
+        const count = document.getElementById('notificationCount');
+        if (count) {
+            count.textContent = unread > 99 ? '99+' : String(unread);
+            count.style.display = unread > 0 ? '' : 'none';
+        }
+    }
+
+    function notificationPayload(open) {
+        return {
+            type: 'notificationPanel',
+            open: open,
+            notifications: notificationItems(),
+            highCount: Number(document.getElementById('notificationHighValue').textContent || 0),
+            pendingCount: Number(document.getElementById('notificationPendingValue').textContent || 0)
+        };
+    }
+
+    function toggleNotifications() {
+        const button = document.getElementById('notificationButton');
+        const open = !button.classList.contains('active');
+        button.classList.toggle('active', open);
+        button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        window.parent.postMessage(notificationPayload(open), '*');
+    }
+
+    function closeNotifications() {
+        const button = document.getElementById('notificationButton');
+        button.classList.remove('active');
+        button.setAttribute('aria-expanded', 'false');
+    }
+
+    function markNotificationsRead() {
+        const ids = readNotificationIds();
+        notificationItems().forEach(function(item) {
+            ids.push(item.id);
+        });
+        saveNotificationIds(ids);
+        updateNotificationState();
+    }
+
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'themeApply') {
+            applyTheme(event.data.theme);
+        }
+        if (event.data && event.data.type === 'accentApply') {
+            applyAccent(event.data.accent);
+        }
+        if (event.data && event.data.type === 'accentPanelState') {
+            const button = document.getElementById('accentButton');
+            button.classList.toggle('active', !!event.data.open);
+            button.setAttribute('aria-expanded', event.data.open ? 'true' : 'false');
+        }
+        if (event.data && event.data.type === 'notificationClose') {
+            closeNotifications();
+        }
+        if (event.data && event.data.type === 'notificationRead') {
+            markNotificationsRead();
+        }
+    });
+
+    applyTheme(localStorage.getItem('theme') || 'light');
+    applyAccent(localStorage.getItem('accentTheme') || 'blue');
+    updateNotificationState();
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
+</script>
+</body>
+</html>

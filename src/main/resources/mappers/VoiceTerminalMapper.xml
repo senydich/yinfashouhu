@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.VoiceTerminalDao">
+    <sql id="BaseColumnList">
+        vt.id,
+        vt.terminal_code terminalCode,
+        vt.terminal_name terminalName,
+        vt.elder_id elderId,
+        e.name elderName,
+        vt.install_location installLocation,
+        vt.device_ip deviceIp,
+        vt.wake_word wakeWord,
+        vt.volume,
+        vt.firmware_version firmwareVersion,
+        vt.status,
+        vt.last_online_time lastOnlineTime,
+        vt.remark,
+        vt.create_date createDate,
+        vt.update_date updateDate
+    </sql>
+
+    <select id="voiceTerminalList" resultType="VoiceTerminal">
+        select
+        <include refid="BaseColumnList"/>
+        from t_voice_terminal vt
+        left join t_elder e on vt.elder_id = e.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="terminalCode != null and terminalCode != ''">
+                and vt.terminal_code like concat('%', #{terminalCode}, '%')
+            </if>
+            <if test="terminalName != null and terminalName != ''">
+                and vt.terminal_name like concat('%', #{terminalName}, '%')
+            </if>
+            <if test="elderName != null and elderName != ''">
+                and e.name like concat('%', #{elderName}, '%')
+            </if>
+            <if test="installLocation != null and installLocation != ''">
+                and vt.install_location like concat('%', #{installLocation}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and vt.status = #{status}
+            </if>
+        </trim>
+        order by vt.status asc, vt.id desc
+    </select>
+
+    <select id="getById" resultType="VoiceTerminal">
+        select
+        <include refid="BaseColumnList"/>
+        from t_voice_terminal vt
+        left join t_elder e on vt.elder_id = e.id
+        where vt.id = #{id}
+    </select>
+
+    <select id="getByTerminalCode" resultType="VoiceTerminal">
+        select
+        <include refid="BaseColumnList"/>
+        from t_voice_terminal vt
+        left join t_elder e on vt.elder_id = e.id
+        where vt.terminal_code = #{terminalCode}
+        limit 1
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_voice_terminal
+        (terminal_code, terminal_name, elder_id, install_location, device_ip, wake_word, volume, firmware_version, status, last_online_time, remark, create_date, update_date)
+        values
+        (#{terminalCode}, #{terminalName}, #{elderId}, #{installLocation}, #{deviceIp}, #{wakeWord}, #{volume}, #{firmwareVersion}, #{status}, #{lastOnlineTime}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_voice_terminal set
+            terminal_code = #{terminalCode},
+            terminal_name = #{terminalName},
+            elder_id = #{elderId},
+            install_location = #{installLocation},
+            device_ip = #{deviceIp},
+            wake_word = #{wakeWord},
+            volume = #{volume},
+            firmware_version = #{firmwareVersion},
+            status = #{status},
+            last_online_time = #{lastOnlineTime},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_voice_terminal where id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.ReminderTaskDao">
+    <sql id="BaseColumnList">
+        rt.id,
+        rt.elder_id elderId,
+        e.name elderName,
+        rt.task_title taskTitle,
+        rt.task_type taskType,
+        rt.remind_time remindTime,
+        rt.repeat_rule repeatRule,
+        rt.status,
+        rt.remark,
+        rt.create_date createDate,
+        rt.update_date updateDate
+    </sql>
+
+    <select id="reminderTaskList" resultType="ReminderTask">
+        select
+        <include refid="BaseColumnList"/>
+        from t_reminder_task rt
+        left join t_elder e on rt.elder_id = e.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderName != null and elderName != ''">
+                and e.name like concat('%', #{elderName}, '%')
+            </if>
+            <if test="taskTitle != null and taskTitle != ''">
+                and rt.task_title like concat('%', #{taskTitle}, '%')
+            </if>
+            <if test="taskType != null and taskType != ''">
+                and rt.task_type = #{taskType}
+            </if>
+            <if test="status != null and status != ''">
+                and rt.status = #{status}
+            </if>
+        </trim>
+        order by rt.remind_time desc, rt.id desc
+    </select>
+
+    <select id="getById" resultType="ReminderTask">
+        select
+        <include refid="BaseColumnList"/>
+        from t_reminder_task rt
+        left join t_elder e on rt.elder_id = e.id
+        where rt.id = #{id}
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_reminder_task
+        (elder_id, task_title, task_type, remind_time, repeat_rule, status, remark, create_date, update_date)
+        values
+        (#{elderId}, #{taskTitle}, #{taskType}, #{remindTime}, #{repeatRule}, #{status}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_reminder_task set
+            elder_id = #{elderId},
+            task_title = #{taskTitle},
+            task_type = #{taskType},
+            remind_time = #{remindTime},
+            repeat_rule = #{repeatRule},
+            status = #{status},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_reminder_task where id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.AccompanyRecordDao">
+    <sql id="BaseColumnList">
+        ar.id,
+        ar.elder_id elderId,
+        e.name elderName,
+        ar.accompany_type accompanyType,
+        ar.start_time startTime,
+        ar.end_time endTime,
+        ar.duration_minutes durationMinutes,
+        ar.companion,
+        ar.content,
+        ar.emotion_result emotionResult,
+        ar.remark,
+        ar.create_date createDate,
+        ar.update_date updateDate
+    </sql>
+
+    <select id="accompanyRecordList" resultType="AccompanyRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_accompany_record ar
+        left join t_elder e on ar.elder_id = e.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderName != null and elderName != ''">
+                and e.name like concat('%', #{elderName}, '%')
+            </if>
+            <if test="accompanyType != null and accompanyType != ''">
+                and ar.accompany_type = #{accompanyType}
+            </if>
+            <if test="companion != null and companion != ''">
+                and ar.companion like concat('%', #{companion}, '%')
+            </if>
+            <if test="emotionResult != null and emotionResult != ''">
+                and ar.emotion_result = #{emotionResult}
+            </if>
+        </trim>
+        order by ar.start_time desc, ar.id desc
+    </select>
+
+    <select id="getById" resultType="AccompanyRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_accompany_record ar
+        left join t_elder e on ar.elder_id = e.id
+        where ar.id = #{id}
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_accompany_record
+        (elder_id, accompany_type, start_time, end_time, duration_minutes, companion, content, emotion_result, remark, create_date, update_date)
+        values
+        (#{elderId}, #{accompanyType}, #{startTime}, #{endTime}, #{durationMinutes}, #{companion}, #{content}, #{emotionResult}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_accompany_record set
+            elder_id = #{elderId},
+            accompany_type = #{accompanyType},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            duration_minutes = #{durationMinutes},
+            companion = #{companion},
+            content = #{content},
+            emotion_result = #{emotionResult},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_accompany_record where id = #{id}
+    </delete>
+</mapper>

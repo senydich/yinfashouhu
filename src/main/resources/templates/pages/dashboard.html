@@ -1,0 +1,384 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据概览 - 银发守护</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 14px;
+        }
+        .overview-card {
+            grid-column: span 2;
+            min-height: 118px;
+            padding: 17px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .overview-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .overview-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 3px;
+            background: #2563eb;
+        }
+        .overview-card.warning::before { background: #d97706; }
+        .overview-card.primary::before { background: #2563eb; }
+        .overview-card.success::before { background: #059669; }
+        .overview-label { color: var(--muted); font-size: .78rem; font-weight: 700; margin-bottom: 8px; }
+        .overview-number { color: #10233f; font-size: 2rem; line-height: 1; font-weight: 800; }
+        .overview-note { color: var(--muted); font-size: .72rem; line-height: 1.5; margin-top: 8px; }
+        .overview-icon {
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #eff6ff;
+            color: #2563eb;
+            flex: 0 0 auto;
+        }
+        .dashboard-main {
+            display: grid;
+            grid-template-columns: minmax(0, 1.55fr) minmax(320px, .95fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .chart-card { padding: 18px; }
+        .bar-chart {
+            height: 220px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 16px 4px 8px;
+            border-bottom: 1px solid var(--line);
+        }
+        .bar-item {
+            flex: 1;
+            min-width: 42px;
+            max-width: 72px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+        }
+        .bar-value { color: var(--primary); font-size: .72rem; font-weight: 800; }
+        .bar-track {
+            width: 100%;
+            height: 132px;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+        }
+        .bar {
+            width: 48%;
+            min-width: 18px;
+            background: linear-gradient(180deg, #60a5fa, #2563eb);
+        }
+        .bar.current { background: linear-gradient(180deg, #34d399, #059669); }
+        .bar-label { color: var(--muted); font-size: .72rem; font-weight: 700; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .summary-item {
+            padding: 12px;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            text-align: center;
+        }
+        .summary-item span { display: block; color: var(--muted); font-size: .72rem; margin-bottom: 5px; }
+        .summary-item strong { color: #10233f; font-size: 1.12rem; }
+        .trend-up { color: #059669 !important; }
+        .trend-down { color: #dc2626 !important; }
+        .event-list { display: grid; gap: 10px; }
+        .event-item {
+            display: grid;
+            grid-template-columns: 34px 1fr auto;
+            gap: 10px;
+            align-items: start;
+            padding: 11px;
+            background: #f8fafc;
+            border: 1px solid #edf2f7;
+            cursor: pointer;
+        }
+        .event-item:hover { border-color: #bfdbfe; background: #f0f7ff; }
+        .event-icon {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: .86rem;
+        }
+        .event-icon.fall { background: #dc2626; }
+        .event-icon.health { background: #d97706; }
+        .event-icon.reminder { background: #2563eb; }
+        .event-icon.dialog { background: #7c3aed; }
+        .event-title { display: block; color: #10233f; font-size: .82rem; font-weight: 800; margin-bottom: 4px; }
+        .event-content { color: var(--muted); font-size: .74rem; line-height: 1.45; max-height: 34px; overflow: hidden; }
+        .event-time { color: #94a3b8; font-size: .68rem; white-space: nowrap; }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .quick-action {
+            min-height: 54px;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid var(--line);
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-size: .8rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .quick-action:hover { border-color: #2563eb; color: #2563eb; }
+        .quick-action i {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #eff6ff;
+            color: #2563eb;
+        }
+        .empty-state {
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--muted);
+            background: #f8fafc;
+            border: 1px dashed var(--line);
+            font-size: .82rem;
+        }
+        body.theme-dark .overview-number,
+        body.theme-dark .summary-item strong,
+        body.theme-dark .event-title {
+            color: #f8fafc;
+        }
+        body.theme-dark .overview-icon,
+        body.theme-dark .summary-item,
+        body.theme-dark .bar-track,
+        body.theme-dark .event-item,
+        body.theme-dark .empty-state,
+        body.theme-dark .quick-action {
+            background: #1f2937;
+            border-color: #334155;
+        }
+        body.theme-dark .event-item:hover { background: #162033; border-color: #2563eb; }
+        body.theme-dark .quick-action { color: #e5e7eb; }
+        @media (max-width: 1120px) {
+            .overview-card { grid-column: span 3; }
+            .dashboard-main { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 680px) {
+            body.admin-page { padding: 14px; }
+            .overview-card { grid-column: span 6; }
+            .summary-grid,
+            .quick-actions { grid-template-columns: 1fr; }
+            .page-heading { flex-direction: column; }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body class="admin-page">
+<div class="page-heading">
+    <div>
+        <h1 class="page-title"><i class="fas fa-chart-pie"></i>数据概览</h1>
+        <div class="page-subtitle">聚合老人状态、健康数据、设备在线和待处理风险。</div>
+    </div>
+    <div class="toolbar-chip"><i class="far fa-clock"></i><span th:text="|更新于 ${overview.lastUpdateText}|">更新于 --</span></div>
+</div>
+
+<section class="dashboard-grid">
+    <article class="overview-card surface primary">
+        <div>
+            <div class="overview-label">老人总数</div>
+            <div class="overview-number" th:text="${overview.elderCount}">0</div>
+            <div class="overview-note">来自老人信息档案</div>
+        </div>
+        <div class="overview-icon"><i class="fas fa-users"></i></div>
+    </article>
+    <article class="overview-card surface success">
+        <div>
+            <div class="overview-label">规律用药</div>
+            <div class="overview-number" th:text="${overview.regularMedicationCount}">0</div>
+            <div class="overview-note">已完成用药记录的老人</div>
+        </div>
+        <div class="overview-icon"><i class="fas fa-pills"></i></div>
+    </article>
+    <article class="overview-card surface primary">
+        <div>
+            <div class="overview-label">今日健康记录</div>
+            <div class="overview-number" th:text="${overview.healthRecordTodayCount}">0</div>
+            <div class="overview-note">按记录时间统计</div>
+        </div>
+        <div class="overview-icon"><i class="fas fa-heart-pulse"></i></div>
+    </article>
+    <article class="overview-card surface success">
+        <div>
+            <div class="overview-label">在线设备</div>
+            <div class="overview-number" th:text="${overview.onlineDeviceCount}">0</div>
+            <div class="overview-note">摄像头、语音终端、边缘网关</div>
+        </div>
+        <div class="overview-icon"><i class="fas fa-satellite-dish"></i></div>
+    </article>
+    <article class="overview-card surface warning">
+        <div>
+            <div class="overview-label">今日异常告警</div>
+            <div class="overview-number" th:text="${overview.alertTodayCount}">0</div>
+            <div class="overview-note">跌倒和健康阈值异常</div>
+        </div>
+        <div class="overview-icon"><i class="fas fa-triangle-exclamation"></i></div>
+    </article>
+    <article class="overview-card surface warning">
+        <div>
+            <div class="overview-label">待提醒用药</div>
+            <div class="overview-number" th:text="${overview.medicationPendingTodayCount}">0</div>
+            <div class="overview-note">今日待处理提醒任务</div>
+        </div>
+        <div class="overview-icon"><i class="fas fa-clock"></i></div>
+    </article>
+</section>
+
+<section class="dashboard-main">
+    <article class="chart-card surface">
+        <div class="admin-card-header">
+            <div>
+                <h2><i class="fas fa-chart-column"></i> 近 7 天用药达成率</h2>
+                <div class="page-subtitle" th:text="|目标值 >= ${overview.medicationTarget}%|">目标值 >= 90%</div>
+            </div>
+            <span class="badge-info">趋势分析</span>
+        </div>
+
+        <div class="bar-chart">
+            <div class="bar-item" th:each="stat : ${medicationStats}">
+                <div class="bar-value" th:text="|${stat.rate}%|">0%</div>
+                <div class="bar-track">
+                    <div class="bar"
+                         th:classappend="${stat.currentDay ? ' current' : ''}"
+                         th:style="|height: ${stat.barHeight}px|"></div>
+                </div>
+                <div class="bar-label" th:text="${stat.currentDay ? '今日' : stat.dateLabel}">--</div>
+            </div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-item"><span>周平均</span><strong><span th:text="${overview.weeklyAvgRateText}">0</span>%</strong></div>
+            <div class="summary-item"><span>最高</span><strong><span th:text="${overview.weeklyMaxRateText}">0</span>%</strong></div>
+            <div class="summary-item"><span>最低</span><strong><span th:text="${overview.weeklyMinRateText}">0</span>%</strong></div>
+            <div class="summary-item"><span>趋势</span><strong th:classappend="${overview.weeklyTrendClass}" th:text="${overview.weeklyTrendText}">0%</strong></div>
+        </div>
+
+        <div class="table-wrapper" style="margin-top:14px;">
+            <table>
+                <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>应服药人数</th>
+                    <th>已服药人数</th>
+                    <th>按时用药率</th>
+                    <th>同比变化</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="stat : ${medicationStats}">
+                    <td>
+                        <strong th:if="${stat.currentDay}" th:text="|${stat.statDate} 今日|">--</strong>
+                        <span th:unless="${stat.currentDay}" th:text="|${stat.statDate} ${stat.dayName}|">--</span>
+                    </td>
+                    <td th:text="${stat.expectedCount}">0</td>
+                    <td th:text="${stat.completedCount}">0</td>
+                    <td><span th:class="${stat.rateClass}" th:text="|${stat.rate}%|">0%</span></td>
+                    <td><span th:class="${stat.currentDay ? 'badge-info' : stat.changeClass}" th:text="${stat.currentDay ? '进行中' : stat.changeText}">-</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <aside>
+        <article class="admin-card">
+            <div class="admin-card-header">
+                <h2><i class="fas fa-bell"></i> 最近告警</h2>
+                <span class="badge-warning">优先处理</span>
+            </div>
+            <div class="event-list" th:if="${dashboardEvents != null and !dashboardEvents.isEmpty()}">
+                <button class="event-item" type="button" th:each="event : ${dashboardEvents}" th:attr="data-url=${event.sourceUrl}" onclick="openEvent(this)">
+                    <span class="event-icon"
+                          th:classappend="${event.eventType == 'FALL' ? ' fall' : (event.eventType == 'HEALTH' ? ' health' : (event.eventType == 'REMINDER' ? ' reminder' : ' dialog'))}">
+                        <i th:class="${event.eventType == 'FALL' ? 'fas fa-person-falling' : (event.eventType == 'HEALTH' ? 'fas fa-heart-pulse' : (event.eventType == 'REMINDER' ? 'fas fa-clock' : 'fas fa-comments'))}"></i>
+                    </span>
+                    <span>
+                        <span class="event-title" th:text="${event.eventTitle}">告警标题</span>
+                        <span class="event-content" th:text="${event.elderName != null ? event.elderName + '：' + event.eventContent : event.eventContent}">告警内容</span>
+                    </span>
+                    <span class="event-time" th:text="${event.eventTime != null ? #dates.format(event.eventTime, 'MM-dd HH:mm') : '--'}">--</span>
+                </button>
+            </div>
+            <div class="empty-state" th:if="${dashboardEvents == null or dashboardEvents.isEmpty()}">
+                <i class="far fa-bell-slash"></i>
+                暂无新的告警事件
+            </div>
+        </article>
+
+        <article class="admin-card" style="margin-top:16px;">
+            <div class="admin-card-header">
+                <h2><i class="fas fa-bolt"></i> 快速入口</h2>
+            </div>
+            <div class="quick-actions">
+                <button class="quick-action" type="button" onclick="navigate('/record/eventList')" th:if="${canEventList}"><i class="fas fa-list-check"></i><span>事件列表</span></button>
+                <button class="quick-action" type="button" onclick="navigate('/healthData/list')" th:if="${canHealthData}"><i class="fas fa-heart-pulse"></i><span>健康数据</span></button>
+                <button class="quick-action" type="button" onclick="navigate('/record/reminderTaskList')" th:if="${canReminderTask}"><i class="fas fa-clock"></i><span>提醒任务</span></button>
+                <button class="quick-action" type="button" onclick="navigate('/operationLog/operationLogList')" th:if="${canOperationLog}"><i class="fas fa-history"></i><span>操作日志</span></button>
+                <div class="empty-state" th:if="${!(canEventList or canHealthData or canReminderTask or canOperationLog)}">暂无可用快捷入口</div>
+            </div>
+        </article>
+    </aside>
+</section>
+
+<script>
+    function navigate(url) {
+        window.parent.postMessage({ type: 'navigate', page: url }, '*');
+    }
+
+    function openEvent(button) {
+        navigate(button.dataset.url || '/record/eventList');
+    }
+
+    window.parent.postMessage({ type: 'pageLoaded', page: 'dashboard' }, '*');
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.FallRecordDao">
+    <sql id="BaseColumnList">
+        fr.id,
+        fr.elder_id elderId,
+        e.name elderName,
+        fr.fall_time fallTime,
+        fr.fall_location fallLocation,
+        fr.severity,
+        fr.handle_result handleResult,
+        fr.remark,
+        fr.create_date createDate,
+        fr.update_date updateDate
+    </sql>
+
+    <select id="fallRecordList" resultType="FallRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_fall_record fr
+        left join t_elder e on fr.elder_id = e.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderName != null and elderName != ''">
+                and e.name like concat('%', #{elderName}, '%')
+            </if>
+            <if test="severity != null and severity != ''">
+                and fr.severity = #{severity}
+            </if>
+        </trim>
+        order by fr.fall_time desc, fr.id desc
+    </select>
+</mapper>

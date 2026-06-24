@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.CameraDeviceDao">
+    <sql id="BaseColumnList">
+        id,
+        device_name deviceName,
+        device_location deviceLocation,
+        device_ip deviceIp,
+        status,
+        last_online_time lastOnlineTime,
+        remark,
+        create_date createDate,
+        update_date updateDate
+    </sql>
+
+    <select id="cameraDeviceList" resultType="CameraDevice">
+        select
+        <include refid="BaseColumnList"/>
+        from t_camera_device
+        <trim prefix="where" prefixOverrides="and">
+            <if test="deviceName != null and deviceName != ''">
+                and device_name like concat('%', #{deviceName}, '%')
+            </if>
+            <if test="deviceLocation != null and deviceLocation != ''">
+                and device_location like concat('%', #{deviceLocation}, '%')
+            </if>
+            <if test="deviceIp != null and deviceIp != ''">
+                and device_ip like concat('%', #{deviceIp}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </trim>
+        order by status asc, id desc
+    </select>
+
+    <select id="getById" resultType="CameraDevice">
+        select
+        <include refid="BaseColumnList"/>
+        from t_camera_device
+        where id = #{id}
+    </select>
+
+    <select id="getByDeviceIp" resultType="CameraDevice">
+        select
+        <include refid="BaseColumnList"/>
+        from t_camera_device
+        where device_ip = #{deviceIp}
+        limit 1
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_camera_device
+        (device_name, device_location, device_ip, status, last_online_time, remark, create_date, update_date)
+        values
+        (#{deviceName}, #{deviceLocation}, #{deviceIp}, #{status}, #{lastOnlineTime}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_camera_device set
+            device_name = #{deviceName},
+            device_location = #{deviceLocation},
+            device_ip = #{deviceIp},
+            status = #{status},
+            last_online_time = #{lastOnlineTime},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_camera_device where id = #{id}
+    </delete>
+</mapper>

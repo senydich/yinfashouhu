@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.DailyReportDao">
+    <sql id="BaseColumnList">
+        dr.id,
+        dr.elder_id elderId,
+        e.name elderName,
+        dr.report_date reportDate,
+        dr.total_records totalRecords,
+        dr.activity_minutes activityMinutes,
+        dr.sleep_minutes sleepMinutes,
+        dr.medication_count medicationCount,
+        dr.abnormal_count abnormalCount,
+        dr.risk_level riskLevel,
+        dr.summary,
+        dr.suggestion,
+        dr.status,
+        dr.create_date createDate,
+        dr.update_date updateDate
+    </sql>
+
+    <select id="dailyReportList" resultType="DailyReport">
+        select
+        <include refid="BaseColumnList"/>
+        from t_daily_report dr
+        left join t_elder e on dr.elder_id = e.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderId != null">
+                and dr.elder_id = #{elderId}
+            </if>
+            <if test="elderName != null and elderName != ''">
+                and e.name like concat('%', #{elderName}, '%')
+            </if>
+            <if test="riskLevel != null and riskLevel != ''">
+                and dr.risk_level = #{riskLevel}
+            </if>
+        </trim>
+        order by dr.report_date desc, dr.id desc
+    </select>
+
+    <select id="getById" resultType="DailyReport">
+        select
+        <include refid="BaseColumnList"/>
+        from t_daily_report dr
+        left join t_elder e on dr.elder_id = e.id
+        where dr.id = #{id}
+    </select>
+
+    <select id="getByElderAndDate" resultType="DailyReport">
+        select
+        <include refid="BaseColumnList"/>
+        from t_daily_report dr
+        left join t_elder e on dr.elder_id = e.id
+        where dr.elder_id = #{elderId}
+          and dr.report_date = date(#{reportDate})
+        limit 1
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_daily_report
+        (elder_id, report_date, total_records, activity_minutes, sleep_minutes, medication_count, abnormal_count, risk_level, summary, suggestion, status, create_date, update_date)
+        values
+        (#{elderId}, #{reportDate}, #{totalRecords}, #{activityMinutes}, #{sleepMinutes}, #{medicationCount}, #{abnormalCount}, #{riskLevel}, #{summary}, #{suggestion}, #{status}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_daily_report set
+            elder_id = #{elderId},
+            report_date = #{reportDate},
+            total_records = #{totalRecords},
+            activity_minutes = #{activityMinutes},
+            sleep_minutes = #{sleepMinutes},
+            medication_count = #{medicationCount},
+            abnormal_count = #{abnormalCount},
+            risk_level = #{riskLevel},
+            summary = #{summary},
+            suggestion = #{suggestion},
+            status = #{status},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_daily_report where id = #{id}
+    </delete>
+</mapper>

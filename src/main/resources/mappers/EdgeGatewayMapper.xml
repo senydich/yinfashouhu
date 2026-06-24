@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.EdgeGatewayDao">
+    <sql id="BaseColumnList">
+        id,
+        gateway_code gatewayCode,
+        gateway_name gatewayName,
+        install_location installLocation,
+        gateway_ip gatewayIp,
+        mac_address macAddress,
+        access_protocol accessProtocol,
+        managed_device_count managedDeviceCount,
+        firmware_version firmwareVersion,
+        status,
+        last_heartbeat_time lastHeartbeatTime,
+        remark,
+        create_date createDate,
+        update_date updateDate
+    </sql>
+
+    <select id="edgeGatewayList" resultType="EdgeGateway">
+        select
+        <include refid="BaseColumnList"/>
+        from t_edge_gateway
+        <trim prefix="where" prefixOverrides="and">
+            <if test="gatewayCode != null and gatewayCode != ''">
+                and gateway_code like concat('%', #{gatewayCode}, '%')
+            </if>
+            <if test="gatewayName != null and gatewayName != ''">
+                and gateway_name like concat('%', #{gatewayName}, '%')
+            </if>
+            <if test="installLocation != null and installLocation != ''">
+                and install_location like concat('%', #{installLocation}, '%')
+            </if>
+            <if test="gatewayIp != null and gatewayIp != ''">
+                and gateway_ip like concat('%', #{gatewayIp}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </trim>
+        order by status asc, id desc
+    </select>
+
+    <select id="getById" resultType="EdgeGateway">
+        select
+        <include refid="BaseColumnList"/>
+        from t_edge_gateway
+        where id = #{id}
+    </select>
+
+    <select id="getByGatewayCode" resultType="EdgeGateway">
+        select
+        <include refid="BaseColumnList"/>
+        from t_edge_gateway
+        where gateway_code = #{gatewayCode}
+        limit 1
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_edge_gateway
+        (gateway_code, gateway_name, install_location, gateway_ip, mac_address, access_protocol, managed_device_count, firmware_version, status, last_heartbeat_time, remark, create_date, update_date)
+        values
+        (#{gatewayCode}, #{gatewayName}, #{installLocation}, #{gatewayIp}, #{macAddress}, #{accessProtocol}, #{managedDeviceCount}, #{firmwareVersion}, #{status}, #{lastHeartbeatTime}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_edge_gateway set
+            gateway_code = #{gatewayCode},
+            gateway_name = #{gatewayName},
+            install_location = #{installLocation},
+            gateway_ip = #{gatewayIp},
+            mac_address = #{macAddress},
+            access_protocol = #{accessProtocol},
+            managed_device_count = #{managedDeviceCount},
+            firmware_version = #{firmwareVersion},
+            status = #{status},
+            last_heartbeat_time = #{lastHeartbeatTime},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_edge_gateway where id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,817 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${healthData.id == null ? '添加健康记录 · 银发守护' : '编辑健康记录 · 银发守护'}">添加健康记录 · 银发守护</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+            background: #f8fafc;
+            padding: 16px 20px;
+            color: #1e293b;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .page-header .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 32px;
+            padding: 6px 16px 6px 12px;
+            color: #475569;
+            font-size: .8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .15s;
+            text-decoration: none;
+        }
+
+        .page-header .back-btn:hover {
+            background: #f8fafc;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        .page-header .back-btn i {
+            font-size: .75rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #0f2b45;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-header h1 i {
+            color: #2563eb;
+            font-size: 1.4rem;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 3px 12px -4px rgba(0, 0, 0, .04);
+            padding: 24px 28px;
+            border: 1px solid #e9eef2;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .card-header h2 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header h2 i {
+            color: #2563eb;
+        }
+
+        .required-hint {
+            font-size: .7rem;
+            color: #94a3b8;
+        }
+
+        .required-hint span,
+        .required {
+            color: #ef4444;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 28px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: .8rem;
+            font-weight: 500;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-group label i {
+            color: #2563eb;
+            font-size: .75rem;
+            width: 16px;
+            text-align: center;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input,
+        .input-wrapper select {
+            width: 100%;
+            height: 42px;
+            padding: 8px 12px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: .85rem;
+            color: #1e293b;
+            background: #fff;
+            transition: border-color .15s, box-shadow .15s;
+            outline: none;
+            font-family: inherit;
+            appearance: auto;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+        }
+
+        .input-wrapper input.error,
+        .input-wrapper select.error {
+            border-color: #ef4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, .1);
+        }
+
+        .input-wrapper .unit {
+            position: absolute;
+            right: 12px;
+            font-size: .7rem;
+            color: #94a3b8;
+            pointer-events: none;
+            font-weight: 500;
+            background: #fff;
+            padding-left: 6px;
+        }
+
+        .input-wrapper input[type="number"] {
+            -moz-appearance: textfield;
+            padding-right: 54px;
+        }
+
+        .input-wrapper input[type="number"]::-webkit-outer-spin-button,
+        .input-wrapper input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-wrapper input[type="datetime-local"] {
+            padding-right: 10px;
+        }
+
+        .hint {
+            min-height: 14px;
+            font-size: .65rem;
+            color: #94a3b8;
+            margin-top: 2px;
+            padding-left: 4px;
+        }
+
+        .hint.error-text {
+            color: #ef4444;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 26px;
+            padding-top: 20px;
+            border-top: 1px solid #e9eef2;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 42px;
+            min-width: 100px;
+            padding: 9px 28px;
+            border-radius: 32px;
+            font-size: .85rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all .15s;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, .25);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #475569;
+            border: 1.5px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-danger {
+            background: #fff;
+            color: #ef4444;
+            border: 1.5px solid #e2e8f0;
+        }
+
+        .btn-danger:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .message-box {
+            display: none;
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: .85rem;
+            font-weight: 500;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .message-box.show {
+            display: flex;
+        }
+
+        .message-box.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .message-box i {
+            font-size: 1.1rem;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 12px 14px;
+            }
+
+            .card {
+                padding: 18px 16px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .page-header h1 {
+                font-size: 1.2rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header .back-btn span {
+                display: none;
+            }
+
+            .page-header .back-btn {
+                padding: 6px 12px;
+            }
+
+            .card {
+                padding: 14px 12px;
+            }
+
+            .input-wrapper input,
+            .input-wrapper select {
+                height: 38px;
+                font-size: .8rem;
+                padding: 6px 10px;
+            }
+
+            .btn {
+                height: 38px;
+                min-width: 80px;
+                padding: 6px 18px;
+                font-size: .8rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1>
+        <i class="fas" th:classappend="${healthData.id == null ? ' fa-plus-circle' : ' fa-pen-to-square'}"></i>
+        <span th:text="${healthData.id == null ? '添加健康记录' : '编辑健康记录'}">添加健康记录</span>
+    </h1>
+</div>
+
+<div class="card">
+    <div class="message-box show error" th:if="${errMsg != null}">
+        <i class="fas fa-exclamation-circle"></i>
+        <span th:text="${errMsg}">保存失败</span>
+    </div>
+    <div class="message-box" id="messageBox">
+        <i class="fas" id="messageIcon"></i>
+        <span id="messageText"></span>
+    </div>
+
+    <div class="card-header">
+        <h2><i class="fas fa-notes-medical"></i> 录入健康指标</h2>
+        <span class="required-hint"><span>*</span> 为必填项</span>
+    </div>
+
+    <form id="healthForm" th:action="${formAction}" method="post" th:object="${healthData}" novalidate>
+        <input type="hidden" th:field="*{id}">
+        <input type="hidden" th:field="*{bloodPressure}" id="bloodPressure">
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="elderId"><i class="fas fa-user"></i> 老人 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <select id="elderId" th:field="*{elderId}" required>
+                        <option value="">请选择老人</option>
+                        <option th:each="elder : ${elderList}" th:value="${elder.id}" th:text="${elder.name}">张淑芬</option>
+                    </select>
+                </div>
+                <div class="hint" id="elderIdHint"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="recordTime"><i class="fas fa-clock"></i> 记录时间 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <input type="datetime-local" id="recordTime" th:field="*{recordTime}" required>
+                </div>
+                <div class="hint" id="recordTimeHint"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="bloodPressureHigh"><i class="fas fa-heart"></i> 血压高压 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <input type="number" id="bloodPressureHigh" placeholder="收缩压" min="80" max="200" step="1" required>
+                    <span class="unit">mmHg</span>
+                </div>
+                <div class="hint" id="bloodPressureHighHint">正常范围 90-140 mmHg</div>
+            </div>
+
+            <div class="form-group">
+                <label for="bloodPressureLow"><i class="fas fa-heartbeat"></i> 血压低压 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <input type="number" id="bloodPressureLow" placeholder="舒张压" min="50" max="150" step="1" required>
+                    <span class="unit">mmHg</span>
+                </div>
+                <div class="hint" id="bloodPressureLowHint">正常范围 60-90 mmHg</div>
+            </div>
+
+            <div class="form-group">
+                <label for="bloodGlucose"><i class="fas fa-droplet"></i> 血糖 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <input type="number" id="bloodGlucose" th:field="*{bloodGlucose}" placeholder="空腹/餐后" min="2.0" max="20.0" step="0.1" required>
+                    <span class="unit">mmol/L</span>
+                </div>
+                <div class="hint" id="bloodGlucoseHint">正常范围 3.9-6.1 mmol/L</div>
+            </div>
+
+            <div class="form-group">
+                <label for="heartRate"><i class="fas fa-pulse"></i> 心率 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <input type="number" id="heartRate" th:field="*{heartRate}" placeholder="静息心率" min="30" max="200" step="1" required>
+                    <span class="unit">bpm</span>
+                </div>
+                <div class="hint" id="heartRateHint">正常范围 60-100 bpm</div>
+            </div>
+
+            <div class="form-group">
+                <label for="spo2"><i class="fas fa-lungs"></i> 血氧 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <input type="number" id="spo2" th:field="*{spo2}" placeholder="血氧饱和度" min="70" max="100" step="1" required>
+                    <span class="unit">%</span>
+                </div>
+                <div class="hint" id="spo2Hint">正常范围 >= 95%</div>
+            </div>
+
+            <div class="form-group">
+                <label for="temperature"><i class="fas fa-thermometer-half"></i> 体温 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <input type="number" id="temperature" th:field="*{temperature}" placeholder="腋下体温" min="34" max="42" step="0.1" required>
+                    <span class="unit">℃</span>
+                </div>
+                <div class="hint" id="temperatureHint">正常范围 36.0-37.2 ℃</div>
+            </div>
+
+            <div class="form-group">
+                <label for="weight"><i class="fas fa-weight-scale"></i> 体重 <span class="required">*</span></label>
+                <div class="input-wrapper">
+                    <input type="number" id="weight" th:field="*{weight}" placeholder="体重" min="20" max="200" step="0.1" required>
+                    <span class="unit">kg</span>
+                </div>
+                <div class="hint" id="weightHint">正常范围 45-80 kg（参考）</div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="fas fa-save"></i>
+                <span th:text="${healthData.id == null ? '提交记录' : '保存修改'}">提交记录</span>
+            </button>
+            <button type="reset" class="btn btn-secondary" id="resetBtn">
+                <i class="fas fa-undo"></i> 重置
+            </button>
+            <a href="/healthData/list" class="btn btn-danger" id="cancelBtn">
+                <i class="fas fa-times"></i> 取消
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function() {
+        "use strict";
+
+        const form = document.getElementById("healthForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const messageBox = document.getElementById("messageBox");
+        const messageIcon = document.getElementById("messageIcon");
+        const messageText = document.getElementById("messageText");
+        const bloodPressure = document.getElementById("bloodPressure");
+
+        const fields = {
+            elderId: document.getElementById("elderId"),
+            recordTime: document.getElementById("recordTime"),
+            bloodPressureHigh: document.getElementById("bloodPressureHigh"),
+            bloodPressureLow: document.getElementById("bloodPressureLow"),
+            bloodGlucose: document.getElementById("bloodGlucose"),
+            heartRate: document.getElementById("heartRate"),
+            spo2: document.getElementById("spo2"),
+            temperature: document.getElementById("temperature"),
+            weight: document.getElementById("weight")
+        };
+
+        const hints = {
+            elderId: document.getElementById("elderIdHint"),
+            recordTime: document.getElementById("recordTimeHint"),
+            bloodPressureHigh: document.getElementById("bloodPressureHighHint"),
+            bloodPressureLow: document.getElementById("bloodPressureLowHint"),
+            bloodGlucose: document.getElementById("bloodGlucoseHint"),
+            heartRate: document.getElementById("heartRateHint"),
+            spo2: document.getElementById("spo2Hint"),
+            temperature: document.getElementById("temperatureHint"),
+            weight: document.getElementById("weightHint")
+        };
+
+        const defaultHints = {
+            elderId: "",
+            recordTime: "",
+            bloodPressureHigh: "正常范围 90-140 mmHg",
+            bloodPressureLow: "正常范围 60-90 mmHg",
+            bloodGlucose: "正常范围 3.9-6.1 mmol/L",
+            heartRate: "正常范围 60-100 bpm",
+            spo2: "正常范围 >= 95%",
+            temperature: "正常范围 36.0-37.2 ℃",
+            weight: "正常范围 45-80 kg（参考）"
+        };
+
+        const validators = {
+            elderId: {
+                test: function(value) { return value !== ""; },
+                message: "请选择一位老人"
+            },
+            recordTime: {
+                test: function(value) { return value !== ""; },
+                message: "请选择记录时间"
+            },
+            bloodPressureHigh: {
+                test: function(value) {
+                    const num = Number(value);
+                    return Number.isFinite(num) && num >= 80 && num <= 200;
+                },
+                message: "请输入 80-200 之间的数值"
+            },
+            bloodPressureLow: {
+                test: function(value) {
+                    const num = Number(value);
+                    return Number.isFinite(num) && num >= 50 && num <= 150;
+                },
+                message: "请输入 50-150 之间的数值"
+            },
+            bloodGlucose: {
+                test: function(value) {
+                    const num = Number(value);
+                    return Number.isFinite(num) && num >= 2 && num <= 20;
+                },
+                message: "请输入 2.0-20.0 之间的数值"
+            },
+            heartRate: {
+                test: function(value) {
+                    const num = Number(value);
+                    return Number.isFinite(num) && num >= 30 && num <= 200;
+                },
+                message: "请输入 30-200 之间的数值"
+            },
+            spo2: {
+                test: function(value) {
+                    const num = Number(value);
+                    return Number.isFinite(num) && num >= 70 && num <= 100;
+                },
+                message: "请输入 70-100 之间的数值"
+            },
+            temperature: {
+                test: function(value) {
+                    const num = Number(value);
+                    return Number.isFinite(num) && num >= 34 && num <= 42;
+                },
+                message: "请输入 34-42 之间的数值"
+            },
+            weight: {
+                test: function(value) {
+                    const num = Number(value);
+                    return Number.isFinite(num) && num >= 20 && num <= 200;
+                },
+                message: "请输入 20-200 之间的数值"
+            }
+        };
+
+        let formDirty = false;
+        const initialRecordTime = fields.recordTime.value;
+        const initialBloodPressure = bloodPressure.value;
+
+        function formatDateForInput(date) {
+            const offset = date.getTimezoneOffset();
+            const local = new Date(date.getTime() - offset * 60000);
+            return local.toISOString().slice(0, 16);
+        }
+
+        function setDefaultRecordTime() {
+            if (!fields.recordTime.value) {
+                fields.recordTime.value = formatDateForInput(new Date());
+            }
+        }
+
+        function fillBloodPressureInputs(value) {
+            if (!value || value.indexOf("/") === -1) {
+                fields.bloodPressureHigh.value = "";
+                fields.bloodPressureLow.value = "";
+                return;
+            }
+            const parts = value.split("/");
+            fields.bloodPressureHigh.value = (parts[0] || "").trim();
+            fields.bloodPressureLow.value = (parts[1] || "").trim();
+        }
+
+        function syncBloodPressure() {
+            bloodPressure.value = fields.bloodPressureHigh.value.trim() + "/" + fields.bloodPressureLow.value.trim();
+        }
+
+        function showMessage(type, text) {
+            messageBox.className = "message-box show " + type;
+            messageIcon.className = "fas " + (type === "error" ? "fa-exclamation-circle" : "fa-check-circle");
+            messageText.textContent = text;
+            messageBox.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function hideMessage() {
+            messageBox.className = "message-box";
+            messageBox.classList.remove("show", "error");
+        }
+
+        function setFieldError(fieldName, error) {
+            const input = fields[fieldName];
+            const hint = hints[fieldName];
+            if (!input) {
+                return;
+            }
+            if (error) {
+                input.classList.add("error");
+                if (hint) {
+                    hint.textContent = error;
+                    hint.className = "hint error-text";
+                }
+            } else {
+                input.classList.remove("error");
+                if (hint) {
+                    hint.textContent = defaultHints[fieldName] || "";
+                    hint.className = "hint";
+                }
+            }
+        }
+
+        function validateField(fieldName) {
+            const input = fields[fieldName];
+            const validator = validators[fieldName];
+            if (!input || !validator) {
+                return true;
+            }
+            const isValid = validator.test(input.value.trim());
+            setFieldError(fieldName, isValid ? null : validator.message);
+            return isValid;
+        }
+
+        function validateForm() {
+            let allValid = true;
+            Object.keys(validators).forEach(function(key) {
+                if (!validateField(key)) {
+                    allValid = false;
+                }
+            });
+            return allValid;
+        }
+
+        function clearErrors() {
+            Object.keys(fields).forEach(function(key) {
+                setFieldError(key, null);
+            });
+        }
+
+        function focusFirstError() {
+            const keys = Object.keys(fields);
+            for (let i = 0; i < keys.length; i++) {
+                if (fields[keys[i]].classList.contains("error")) {
+                    fields[keys[i]].focus();
+                    return;
+                }
+            }
+        }
+
+        function confirmLeave(event, text) {
+            if (formDirty && !window.confirm(text)) {
+                event.preventDefault();
+            }
+        }
+
+        fillBloodPressureInputs(initialBloodPressure);
+        setDefaultRecordTime();
+        clearErrors();
+
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
+            hideMessage();
+            syncBloodPressure();
+
+            if (!validateForm()) {
+                showMessage("error", "请完善表单中的红色标记项");
+                focusFirstError();
+                return;
+            }
+
+            formDirty = false;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+            form.submit();
+        });
+
+        resetBtn.addEventListener("click", function() {
+            window.setTimeout(function() {
+                bloodPressure.value = initialBloodPressure;
+                fillBloodPressureInputs(initialBloodPressure);
+                if (!initialRecordTime) {
+                    fields.recordTime.value = "";
+                    setDefaultRecordTime();
+                }
+                clearErrors();
+                hideMessage();
+                submitBtn.disabled = false;
+                formDirty = false;
+            }, 0);
+        });
+
+        Object.keys(fields).forEach(function(key) {
+            const input = fields[key];
+            input.addEventListener("blur", function() {
+                validateField(key);
+            });
+            input.addEventListener("input", function() {
+                formDirty = true;
+                if (input.classList.contains("error")) {
+                    setFieldError(key, null);
+                }
+            });
+            input.addEventListener("change", function() {
+                formDirty = true;
+                if (input.tagName === "SELECT") {
+                    validateField(key);
+                }
+            });
+        });
+
+        form.addEventListener("keydown", function(event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                event.preventDefault();
+                form.dispatchEvent(new Event("submit", { cancelable: true }));
+            }
+        });
+
+        document.getElementById("cancelBtn").addEventListener("click", function(event) {
+            confirmLeave(event, "您有未保存的数据，确定要取消吗？");
+        });
+
+        window.parent.postMessage({ type: "pageLoaded", page: "healthData" }, "*");
+    })();
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

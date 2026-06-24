@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康数据 · 银发守护</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; overflow-x: hidden; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .date-selector-container { display: flex; align-items: center; gap: 10px; background: #fff; padding: 4px 8px; border-radius: 32px; border: 1px solid #e2e8f0; position: relative; }
+        .date-nav-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: #fff; color: #475569; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+        .date-nav-btn:hover { background: #2563eb; color: #fff; }
+        .current-date { min-width: 128px; text-align: center; font-size: .82rem; cursor: pointer; color: #1e293b; }
+        .current-date i { margin-left: 6px; color: #2563eb; }
+        .export-btn, .btn-primary { background: #fff; border: 1px solid #e2e8f0; padding: 6px 16px; border-radius: 32px; display: inline-flex; align-items: center; gap: 6px; color: #475569; cursor: pointer; font-size: .75rem; }
+        .export-btn:hover, .btn-primary:hover { border-color: #2563eb; color: #2563eb; }
+        .date-picker-dropdown { position: absolute; top: 42px; left: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 8px 20px -4px rgba(0,0,0,.1); padding: 12px; z-index: 10; width: 242px; display: none; }
+        .date-picker-dropdown.show { display: block; }
+        .date-picker-header, .date-picker-footer { display: flex; justify-content: space-between; align-items: center; }
+        .date-picker-header { margin-bottom: 12px; }
+        .date-picker-header button, .date-picker-footer button { border: none; background: transparent; color: #2563eb; cursor: pointer; padding: 4px 8px; border-radius: 16px; }
+        .date-picker-header button:hover, .date-picker-footer button:hover { background: #eef2ff; }
+        .date-picker-month { font-weight: 700; font-size: .82rem; }
+        .date-picker-weekdays, .date-picker-days { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 2px; }
+        .date-picker-weekdays { color: #64748b; font-size: .68rem; margin-bottom: 6px; }
+        .date-picker-day { width: 28px; height: 28px; border-radius: 50%; border: none; background: #fff; cursor: pointer; color: #1e293b; font-size: .72rem; margin: 0 auto; }
+        .date-picker-day:hover { background: #f1f5f9; }
+        .date-picker-day.selected { background: #2563eb; color: #fff; }
+        .date-picker-day.other-month { color: #94a3b8; }
+        .date-picker-day.today { border: 1.5px solid #2563eb; }
+        .date-picker-footer { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+        .stats-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .summary-card { background: #fff; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #e9eef2; }
+        .summary-card .label { color: #64748b; font-size: .8rem; margin-bottom: 4px; }
+        .summary-card .value { font-size: 1.4rem; font-weight: 700; color: #1e3a8a; }
+        .summary-card .trend { font-size: .78rem; margin-top: 3px; color: #64748b; }
+        .card { background: #fff; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); padding: 20px; margin-bottom: 20px; border: 1px solid #e9eef2; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+        .card-header h2 { font-size: 1.05rem; font-weight: 600; color: #1e3a5f; }
+        .hint { color: #64748b; font-size: .72rem; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: .8rem; min-width: 900px; }
+        th { text-align: left; padding: 10px; color: #2b4f6e; font-weight: 600; background: #f8fafc; border-bottom: 1px solid #dee7ef; white-space: nowrap; }
+        td { padding: 8px 10px; border-bottom: 1px solid #ecf1f5; color: #1e3b4f; white-space: nowrap; }
+        .warning-value, .normal-value { border-radius: 16px; padding: 3px 10px; display: inline-block; font-size: .75rem; }
+        .warning-value { color: #b91c1c; font-weight: 700; background: #fee2e2; }
+        .normal-value { color: #1e3b4f; background: #f8fafc; }
+        .threshold-info { display: flex; gap: 12px; margin-top: 12px; padding: 10px; background: #f8fafc; border-radius: 12px; font-size: .72rem; color: #64748b; flex-wrap: wrap; }
+        .threshold-item { display: flex; align-items: center; gap: 4px; }
+        .threshold-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; }
+        .threshold-dot.normal { background: #10b981; }
+        @media (max-width: 800px) { .stats-summary { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .stats-summary { grid-template-columns: 1fr; } }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-heartbeat"></i> 健康数据</h1>
+</div>
+
+<div class="toolbar">
+    <div class="date-selector-container" id="dateSelectorContainer">
+        <button class="date-nav-btn" id="prevDayBtn" title="前一天"><i class="fas fa-chevron-left"></i></button>
+        <div class="current-date" id="currentDateDisplay">
+            <span id="dateText">2026-06-17</span>
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <button class="date-nav-btn" id="nextDayBtn" title="后一天"><i class="fas fa-chevron-right"></i></button>
+        <div class="date-picker-dropdown" id="datePickerDropdown">
+            <div class="date-picker-header">
+                <button id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
+                <span class="date-picker-month" id="currentMonth">2026年6月</span>
+                <button id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="date-picker-weekdays">
+                <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+            </div>
+            <div class="date-picker-days" id="datePickerDays"></div>
+            <div class="date-picker-footer">
+                <button id="todayBtn">今天</button>
+                <button id="closePickerBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="export-btn" onclick="alert('模拟导出数据')">
+        <i class="fas fa-download"></i> 导出数据
+    </button>
+</div>
+
+<div class="stats-summary">
+    <div class="summary-card">
+        <div class="label">今日记录</div>
+        <div class="value" id="todayCount">0</div>
+        <div class="trend" id="todayTrend">持平</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">异常记录</div>
+        <div class="value" id="abnormalCount">0</div>
+        <div class="trend" id="abnormalTrend">持平</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">血压异常</div>
+        <div class="value" id="bpAbnormal">0</div>
+        <div class="trend">老人</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">血糖异常</div>
+        <div class="value" id="glucoseAbnormal">0</div>
+        <div class="trend">老人</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-table"></i> <span id="tableDateTitle">2026-06-17</span> 健康记录</h2>
+        <span class="hint">根据阈值自动标记异常数据</span>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="healthDataTable">
+            <thead>
+            <tr>
+                <th>老人姓名</th>
+                <th>血压(mmHg)</th>
+                <th>血糖(mmol/L)</th>
+                <th>心率(bpm)</th>
+                <th>血氧(%)</th>
+                <th>体温(℃)</th>
+                <th>体重(kg)</th>
+                <th>记录时间</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="threshold-info">
+        <div class="threshold-item"><span class="threshold-dot"></span><span>血压 > 140/90</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span>血糖 > 7.0</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span>心率 > 100 或 < 60</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span>血氧 < 95%</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span>体温 > 37.5℃</span></div>
+        <div class="threshold-item"><span class="threshold-dot normal"></span><span>正常范围</span></div>
+    </div>
+
+</div>
+
+<script>
+    const healthDataDB = {
+        '2026-06-15': [
+            { name: '张淑兰', bp: '152/92', glucose: 6.5, hr: 78, spo2: 96, temp: 36.4, weight: 62.1, time: '08:30' },
+            { name: '王德明', bp: '126/76', glucose: 7.2, hr: 82, spo2: 95, temp: 36.3, weight: 71.2, time: '09:15' },
+            { name: '李秀英', bp: '142/88', glucose: 6.7, hr: 72, spo2: 94, temp: 36.6, weight: 57.8, time: '10:00' }
+        ],
+        '2026-06-16': [
+            { name: '张淑兰', bp: '155/93', glucose: 6.3, hr: 77, spo2: 97, temp: 36.5, weight: 62.2, time: '08:30' },
+            { name: '王德明', bp: '127/77', glucose: 7.5, hr: 98, spo2: 94, temp: 36.4, weight: 71.3, time: '09:15' },
+            { name: '李秀英', bp: '143/89', glucose: 6.8, hr: 71, spo2: 95, temp: 37.2, weight: 57.9, time: '10:00' },
+            { name: '陈建国', bp: '133/81', glucose: 5.9, hr: 69, spo2: 98, temp: 36.3, weight: 69.6, time: '10:45' }
+        ],
+        '2026-06-17': [
+            { name: '张淑兰', bp: '158/95', glucose: 6.4, hr: 76, spo2: 97, temp: 36.5, weight: 62.3, time: '08:30' },
+            { name: '王德明', bp: '128/78', glucose: 7.8, hr: 108, spo2: 93, temp: 36.4, weight: 71.5, time: '09:15' },
+            { name: '李秀英', bp: '145/90', glucose: 6.8, hr: 70, spo2: 95, temp: 37.8, weight: 58.0, time: '10:00' },
+            { name: '陈建国', bp: '135/82', glucose: 5.9, hr: 68, spo2: 98, temp: 36.3, weight: 69.8, time: '10:45' },
+            { name: '赵美华', bp: '132/80', glucose: 7.5, hr: 74, spo2: 96, temp: 36.7, weight: 64.2, time: '11:20' },
+            { name: '周玉梅', bp: '162/98', glucose: 8.2, hr: 112, spo2: 91, temp: 36.8, weight: 59.7, time: '14:15' }
+        ]
+    };
+
+    const thresholds = { bpSystolic: 140, bpDiastolic: 90, glucose: 7.0, hrMin: 60, hrMax: 100, spo2: 95, temp: 37.5 };
+    let currentDate = new Date('2026-06-17');
+    let pickerCurrentMonth = new Date(currentDate);
+    let selectedDateStr = formatDate(currentDate);
+
+    const dateText = document.getElementById('dateText');
+    const tableDateTitle = document.getElementById('tableDateTitle');
+    const tableBody = document.getElementById('tableBody');
+    const datePickerDropdown = document.getElementById('datePickerDropdown');
+    const datePickerDays = document.getElementById('datePickerDays');
+    const currentMonthSpan = document.getElementById('currentMonth');
+    const todayCount = document.getElementById('todayCount');
+    const todayTrend = document.getElementById('todayTrend');
+    const abnormalCount = document.getElementById('abnormalCount');
+    const abnormalTrend = document.getElementById('abnormalTrend');
+    const bpAbnormal = document.getElementById('bpAbnormal');
+    const glucoseAbnormal = document.getElementById('glucoseAbnormal');
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    function isAbnormal(type, value, bpValue) {
+        if (type === 'bp') {
+            const parts = bpValue.split('/').map(Number);
+            return parts[0] > thresholds.bpSystolic || parts[1] > thresholds.bpDiastolic;
+        }
+        if (type === 'glucose') return value > thresholds.glucose;
+        if (type === 'hr') return value < thresholds.hrMin || value > thresholds.hrMax;
+        if (type === 'spo2') return value < thresholds.spo2;
+        if (type === 'temp') return value > thresholds.temp;
+        return false;
+    }
+
+    function countAbnormal(data) {
+        return data.filter(function(item) {
+            return isAbnormal('bp', null, item.bp)
+                || isAbnormal('glucose', item.glucose)
+                || isAbnormal('hr', item.hr)
+                || isAbnormal('spo2', item.spo2)
+                || isAbnormal('temp', item.temp);
+        }).length;
+    }
+
+    function renderTable(dateStr) {
+        const data = healthDataDB[dateStr] || [];
+        let html = '';
+        let bpAbnormalCount = 0;
+        let glucoseAbnormalCount = 0;
+
+        data.forEach(function(item) {
+            const bpBad = isAbnormal('bp', null, item.bp);
+            const glucoseBad = isAbnormal('glucose', item.glucose);
+            const hrBad = isAbnormal('hr', item.hr);
+            const spo2Bad = isAbnormal('spo2', item.spo2);
+            const tempBad = isAbnormal('temp', item.temp);
+            if (bpBad) bpAbnormalCount++;
+            if (glucoseBad) glucoseAbnormalCount++;
+            html += '<tr>'
+                + '<td><strong>' + item.name + '</strong></td>'
+                + '<td><span class="' + (bpBad ? 'warning-value' : 'normal-value') + '">' + item.bp + '</span></td>'
+                + '<td><span class="' + (glucoseBad ? 'warning-value' : 'normal-value') + '">' + item.glucose + '</span></td>'
+                + '<td><span class="' + (hrBad ? 'warning-value' : 'normal-value') + '">' + item.hr + '</span></td>'
+                + '<td><span class="' + (spo2Bad ? 'warning-value' : 'normal-value') + '">' + item.spo2 + '</span></td>'
+                + '<td><span class="' + (tempBad ? 'warning-value' : 'normal-value') + '">' + item.temp + '</span></td>'
+                + '<td><span class="normal-value">' + item.weight + '</span></td>'
+                + '<td>' + item.time + '</td>'
+                + '</tr>';
+        });
+
+        if (!data.length) {
+            html = '<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">'
+                + '<i class="fas fa-inbox" style="font-size:1.8rem;margin-bottom:8px;display:block;"></i>'
+                + '暂无 ' + dateStr + ' 的健康数据</td></tr>';
+        }
+
+        tableBody.innerHTML = html;
+        todayCount.textContent = data.length;
+        const totalAbnormal = countAbnormal(data);
+        abnormalCount.textContent = totalAbnormal;
+        bpAbnormal.textContent = bpAbnormalCount;
+        glucoseAbnormal.textContent = glucoseAbnormalCount;
+
+        const prevDate = new Date(currentDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        const prevData = healthDataDB[formatDate(prevDate)] || [];
+        setTrend(todayTrend, data.length - prevData.length);
+        setTrend(abnormalTrend, totalAbnormal - countAbnormal(prevData));
+    }
+
+    function setTrend(element, value) {
+        if (value > 0) {
+            element.textContent = '+' + value + ' 较昨日';
+            element.style.color = '#10b981';
+        } else if (value < 0) {
+            element.textContent = value + ' 较昨日';
+            element.style.color = '#ef4444';
+        } else {
+            element.textContent = '持平';
+            element.style.color = '#64748b';
+        }
+    }
+
+    function updateDisplay() {
+        const dateStr = formatDate(currentDate);
+        selectedDateStr = dateStr;
+        dateText.textContent = dateStr;
+        tableDateTitle.textContent = dateStr;
+        renderTable(dateStr);
+    }
+
+    function changeDay(delta) {
+        currentDate.setDate(currentDate.getDate() + delta);
+        pickerCurrentMonth = new Date(currentDate);
+        updateDisplay();
+    }
+
+    function renderDatePickerDays() {
+        const year = pickerCurrentMonth.getFullYear();
+        const month = pickerCurrentMonth.getMonth();
+        currentMonthSpan.textContent = year + '年' + (month + 1) + '月';
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDay = firstDay.getDay();
+        const totalDays = lastDay.getDate();
+        let html = '';
+        const prevMonthLastDay = new Date(year, month, 0).getDate();
+        for (let i = startDay - 1; i >= 0; i--) {
+            html += '<button class="date-picker-day other-month" type="button">' + (prevMonthLastDay - i) + '</button>';
+        }
+        const today = new Date();
+        for (let d = 1; d <= totalDays; d++) {
+            const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+            const classes = [
+                'date-picker-day',
+                today.getFullYear() === year && today.getMonth() === month && today.getDate() === d ? 'today' : '',
+                dateStr === selectedDateStr ? 'selected' : ''
+            ].join(' ');
+            html += '<button class="' + classes + '" type="button" data-date="' + dateStr + '">' + d + '</button>';
+        }
+        const remainingCells = 42 - (startDay + totalDays);
+        for (let d = 1; d <= remainingCells; d++) {
+            html += '<button class="date-picker-day other-month" type="button">' + d + '</button>';
+        }
+        datePickerDays.innerHTML = html;
+        document.querySelectorAll('.date-picker-day[data-date]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const parts = this.getAttribute('data-date').split('-').map(Number);
+                currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                pickerCurrentMonth = new Date(currentDate);
+                updateDisplay();
+                datePickerDropdown.classList.remove('show');
+            });
+        });
+    }
+
+    document.getElementById('prevDayBtn').addEventListener('click', function() { changeDay(-1); });
+    document.getElementById('nextDayBtn').addEventListener('click', function() { changeDay(1); });
+    document.getElementById('currentDateDisplay').addEventListener('click', function(e) {
+        e.stopPropagation();
+        datePickerDropdown.classList.toggle('show');
+        renderDatePickerDays();
+    });
+    document.getElementById('prevMonthBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        pickerCurrentMonth.setMonth(pickerCurrentMonth.getMonth() - 1);
+        renderDatePickerDays();
+    });
+    document.getElementById('nextMonthBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        pickerCurrentMonth.setMonth(pickerCurrentMonth.getMonth() + 1);
+        renderDatePickerDays();
+    });
+    document.getElementById('todayBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        currentDate = new Date();
+        pickerCurrentMonth = new Date(currentDate);
+        updateDisplay();
+        datePickerDropdown.classList.remove('show');
+    });
+    document.getElementById('closePickerBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        datePickerDropdown.classList.remove('show');
+    });
+    document.addEventListener('click', function(e) {
+        if (!document.getElementById('dateSelectorContainer').contains(e.target)) {
+            datePickerDropdown.classList.remove('show');
+        }
+    });
+
+    updateDisplay();
+    window.parent.postMessage({ type: 'pageLoaded', page: 'healthData' }, '*');
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

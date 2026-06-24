@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日常报告生成</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); padding: 20px; border: 1px solid #e9eef2; margin-bottom: 16px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+        .card-header h2 { font-size: 1.05rem; font-weight: 600; color: #1e3a5f; }
+        .generate-form, .search-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .form-input, .form-select { min-width: 180px; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 32px; font-size: .8rem; outline: none; background: #fff; }
+        .btn-primary { background: #2563eb; border: none; color: white; font-weight: 500; padding: 7px 18px; border-radius: 32px; display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; cursor: pointer; text-decoration: none; }
+        .btn-danger { background: #fff; border: 1px solid #f3b4b4; color: #b33a3a; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: .75rem; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: .8rem; min-width: 1180px; }
+        th { text-align: left; padding: 10px 12px; color: #2b4f6e; font-weight: 600; background: #f8fafc; border-bottom: 1px solid #dee7ef; white-space: nowrap; }
+        td { padding: 8px 12px; border-bottom: 1px solid #ecf1f5; color: #1e3b4f; vertical-align: top; }
+        .text-cell { max-width: 260px; line-height: 1.5; white-space: normal; }
+        .badge { padding: 3px 10px; border-radius: 24px; font-size: .7rem; font-weight: 500; display: inline-block; white-space: nowrap; }
+        .badge-low { background: #dff0e6; color: #1b6b4a; }
+        .badge-medium { background: #fff3e0; color: #b45309; }
+        .badge-high { background: #fce4e4; color: #b33a3a; }
+        .stats-info { margin-top: 12px; color: #64748b; font-size: .75rem; display: flex; align-items: center; gap: 8px; }
+        .error-box { margin-bottom: 12px; padding: 10px 14px; border-radius: 10px; background: #fce4e4; color: #9b2c2c; font-size: .8rem; border: 1px solid #f3b4b4; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-file-signature"></i> 日常报告生成</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-wand-magic-sparkles"></i> 生成日报</h2>
+    </div>
+    <div class="error-box" th:if="${errMsg != null}" th:text="${errMsg}">error</div>
+    <form class="generate-form" action="/report/generateDailyReport" method="post">
+        <select class="form-select" name="elderId" required>
+            <option value="">请选择老人</option>
+            <option th:each="elder : ${elderList}" th:value="${elder.id}" th:text="${elder.name}">张三</option>
+        </select>
+        <input class="form-input" type="date" name="reportDate" required>
+        <button class="btn-primary" type="submit"><i class="fas fa-file-circle-plus"></i> 生成报告</button>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-list-ul"></i> 日常报告列表</h2>
+        <form class="search-bar" action="/report/dailyReportList" method="get">
+            <input class="form-input" type="text" name="elderName" placeholder="搜索老人姓名">
+            <select class="form-select" name="riskLevel">
+                <option value="">全部风险</option>
+                <option value="LOW">低风险</option>
+                <option value="MEDIUM">中风险</option>
+                <option value="HIGH">高风险</option>
+            </select>
+            <button class="btn-primary" type="submit"><i class="fas fa-search"></i> 搜索</button>
+        </form>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>老人</th>
+                <th>日期</th>
+                <th>记录数</th>
+                <th>活动分钟</th>
+                <th>睡眠分钟</th>
+                <th>用药次数</th>
+                <th>异常次数</th>
+                <th>风险</th>
+                <th>摘要</th>
+                <th>建议</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="report : ${dailyReportList}">
+                <td th:text="${report.id}">1</td>
+                <td><strong th:text="${report.elderName}">张三</strong></td>
+                <td th:text="${report.reportDate != null ? #dates.format(report.reportDate, 'yyyy-MM-dd') : ''}">2026-06-17</td>
+                <td th:text="${report.totalRecords}">3</td>
+                <td th:text="${report.activityMinutes}">60</td>
+                <td th:text="${report.sleepMinutes}">420</td>
+                <td th:text="${report.medicationCount}">2</td>
+                <td th:text="${report.abnormalCount}">0</td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${report.riskLevel == 'HIGH' ? ' badge-high' : (report.riskLevel == 'MEDIUM' ? ' badge-medium' : ' badge-low')}"
+                          th:text="${report.riskLevel == 'HIGH' ? '高风险' : (report.riskLevel == 'MEDIUM' ? '中风险' : '低风险')}">低风险</span>
+                </td>
+                <td class="text-cell" th:text="${report.summary}">摘要</td>
+                <td class="text-cell" th:text="${report.suggestion}">建议</td>
+                <td>
+                    <button type="button" class="btn-danger" th:onclick="|delReport(${report.id})|">
+                        <i class="fas fa-trash-alt"></i> 删除
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="stats-info">
+        <i class="fas fa-info-circle"></i>
+        <span>共 <span th:text="${dailyReportList == null ? 0 : dailyReportList.size()}">0</span> 条报告</span>
+    </div>
+</div>
+
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'dailyReport' }, '*');
+
+    function delReport(id) {
+        if (confirm('确认删除这份日报？')) {
+            window.location.href = '/report/dailyReportDel?id=' + id;
+        }
+    }
+
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

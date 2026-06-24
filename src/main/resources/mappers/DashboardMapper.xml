@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.DashboardDao">
+    <select id="getOverview" resultType="DashboardOverview">
+        select
+            (select count(1) from t_elder) elderCount,
+            (select count(distinct elder_id) from t_reminder_task where task_type = 'MEDICATION' and status = 'DONE') regularMedicationCount,
+            (select count(1) from t_health_data where date(record_time) = curdate()) healthRecordTodayCount,
+            (
+                (select count(1) from t_camera_device where status = 'ONLINE') +
+                (select count(1) from t_voice_terminal where status = 'ONLINE') +
+                (select count(1) from t_edge_gateway where status = 'ONLINE')
+            ) onlineDeviceCount,
+            (
+                (select count(1) from t_fall_record where date(fall_time) = curdate()) +
+                (select count(1) from t_health_data hd
+                 left join t_health_data_threshold hdt on hdt.id = 1
+                 where date(hd.record_time) = curdate()
+                   and (
+                       (hdt.blood_glucose_high is not null and hd.blood_glucose > hdt.blood_glucose_high)
+                       or (hdt.blood_glucose_low is not null and hd.blood_glucose &lt; hdt.blood_glucose_low)
+                       or (hdt.heart_rate_high is not null and hd.heart_rate > hdt.heart_rate_high)
+                       or (hdt.heart_rate_low is not null and hd.heart_rate &lt; hdt.heart_rate_low)
+                       or (hdt.spo2 is not null and hd.spo2 &lt; hdt.spo2)
+                       or (hdt.temperature_high is not null and hd.temperature > hdt.temperature_high)
+                       or (hdt.temperature_low is not null and hd.temperature &lt; hdt.temperature_low)
+                       or (
+                           hd.blood_pressure is not null and instr(hd.blood_pressure, '/') > 0
+                           and (
+                               (hdt.blood_pressure_high is not null and cast(substring_index(hd.blood_pressure, '/', 1) as decimal(8,2)) > hdt.blood_pressure_high)
+                               or (hdt.blood_pressure_low is not null and cast(substring_index(hd.blood_pressure, '/', -1) as decimal(8,2)) &lt; hdt.blood_pressure_low)
+                           )
+                       )
+                   ))
+            ) alertTodayCount,
+            (select count(1) from t_reminder_task where task_type = 'MEDICATION' and date(remind_time) = curdate() and status = 'PENDING') medicationPendingTodayCount
+    </select>
+
+    <select id="listMedicationStats" resultType="DashboardMedicationStat">
+        select
+            date_format(d.stat_date, '%Y-%m-%d') statDate,
+            date_format(d.stat_date, '%m/%d') dateLabel,
+            case date_format(d.stat_date, '%w')
+                when '0' then '周日'
+                when '1' then '周一'
+                when '2' then '周二'
+                when '3' then '周三'
+                when '4' then '周四'
+                when '5' then '周五'
+                else '周六'
+            end dayName,
+            count(rt.id) expectedCount,
+            sum(case when rt.status = 'DONE' then 1 else 0 end) completedCount,
+            case when d.stat_date = curdate() then true else false end currentDay
+        from (
+            select date_sub(curdate(), interval 6 day) stat_date
+            union all select date_sub(curdate(), interval 5 day)
+            union all select date_sub(curdate(), interval 4 day)
+            union all select date_sub(curdate(), interval 3 day)
+            union all select date_sub(curdate(), interval 2 day)
+            union all select date_sub(curdate(), interval 1 day)
+            union all select curdate()
+        ) d
+        left join t_reminder_task rt on date(rt.remind_time) = d.stat_date and rt.task_type = 'MEDICATION'
+        group by d.stat_date
+        order by d.stat_date asc
+    </select>
+</mapper>

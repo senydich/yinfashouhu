@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户表单</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); padding: 24px 28px; border: 1px solid #e9eef2; max-width: 720px; margin: 0 auto; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+        .card-header h2 { font-size: 1.1rem; font-weight: 600; color: #1e3a5f; }
+        .btn-secondary { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 6px 22px; border-radius: 32px; font-size: .8rem; font-weight: 500; color: #334e68; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-secondary:hover { background: #e6edf5; }
+        .btn-primary { background: #2563eb; border: none; color: white; font-weight: 500; padding: 6px 22px; border-radius: 32px; font-size: .8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary:hover { background: #1a4fbc; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: .78rem; font-weight: 500; color: #334e68; margin-bottom: 4px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: .85rem; outline: none; background: white; }
+        .form-group input:focus, .form-group select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .role-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+        .role-item { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: #334155; background: #fff; border: 1px solid #edf2f7; border-radius: 10px; padding: 8px 10px; min-height: 38px; }
+        .role-item input { width: auto; accent-color: #2563eb; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid #ecf1f5; padding-top: 20px; }
+        .required { color: #b33a3a; margin-left: 2px; }
+        @media (max-width: 700px) { .form-row, .role-grid { grid-template-columns: 1fr; gap: 0; } }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1>
+        <i class="fas fa-user-plus"></i>
+        <span th:text="${user != null and user.id != null ? '编辑用户' : '新增用户'}">新增用户</span>
+    </h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-pen"></i> 填写用户信息</h2>
+        <a href="/user/userList" class="btn-secondary"><i class="fas fa-arrow-left"></i> 返回列表</a>
+    </div>
+
+    <form th:action="${formAction}" method="post" th:object="${user}">
+        <input type="hidden" th:field="*{id}">
+        <div class="form-row">
+            <div class="form-group">
+                <label>登录名<span class="required">*</span></label>
+                <input type="text" th:field="*{loginName}" placeholder="请输入登录名" required>
+            </div>
+            <div class="form-group">
+                <label>真实姓名 <span class="required">*</span></label>
+                <input type="text" th:field="*{realName}" placeholder="请输入真实姓名" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>密码 <span class="required">*</span></label>
+                <input type="text" th:field="*{password}" placeholder="请输入密码" required>
+            </div>
+            <div class="form-group">
+                <label>岗位</label>
+                <input type="text" th:field="*{job}" placeholder="如：护理员、管理员">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>性别</label>
+                <select th:field="*{sex}">
+                    <option value="">请选择</option>
+                    <option value="1">男</option>
+                    <option value="0">女</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>状态</label>
+                <select th:field="*{status}">
+                    <option value="1">启用</option>
+                    <option value="0">停用</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>电话</label>
+                <input type="text" th:field="*{phone}" placeholder="手机号">
+            </div>
+            <div class="form-group">
+                <label>邮箱</label>
+                <input type="email" th:field="*{email}" placeholder="example@domain.com">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>角色分配</label>
+            <div class="role-grid">
+                <label class="role-item" th:each="role : ${roleList}">
+                    <input type="checkbox" name="roleIds" th:value="${role.id}"
+                           th:checked="${selectedRoleIds != null and selectedRoleIds.contains(role.id)}">
+                    <span th:text="${role.roleName + ' (' + role.roleCode + ')'}">系统管理员</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/user/userList" class="btn-secondary"><i class="fas fa-times"></i> 取消</a>
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> 保存</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'userMgmt' }, '*');
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

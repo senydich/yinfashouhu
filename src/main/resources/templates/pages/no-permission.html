@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无权限访问</title>
+    <style>
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #1e293b; }
+        .box { background: #fff; padding: 28px 32px; border-radius: 16px; border: 1px solid #e9eef2; box-shadow: 0 10px 30px -18px rgba(15, 23, 42, .2); text-align: center; max-width: 420px; }
+        h1 { font-size: 1.35rem; margin-bottom: 10px; }
+        p { color: #64748b; font-size: .9rem; line-height: 1.6; }
+        a { display: inline-flex; margin-top: 18px; color: #2563eb; text-decoration: none; font-weight: 600; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="box">
+    <h1>无权限访问</h1>
+    <p>当前账号没有访问这个页面的权限，请联系管理员分配角色或权限。</p>
+    <a href="/main">返回系统</a>
+</div>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

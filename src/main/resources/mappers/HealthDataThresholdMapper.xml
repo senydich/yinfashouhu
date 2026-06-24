@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.HealthDataThresholdDao">
+    <select id="getOne" resultType="HealthDataThreshold">
+        SELECT
+            id,
+            blood_pressure_high bloodPressureHigh,
+            blood_pressure_low bloodPressureLow,
+            blood_glucose_high bloodGlucoseHigh,
+            blood_glucose_low bloodGlucoseLow,
+            heart_rate_low heartRatelow,
+            heart_rate_high heartRatehigh,
+            spo2,
+            temperature_high temperatureHigh,
+            temperature_low temperatureLow,
+            weight,
+            update_date updateDate
+        FROM t_health_data_threshold where id = 1
+    </select>
+
+    <update id="update">
+        update t_health_data_threshold set
+            blood_pressure_high = #{bloodPressureHigh},
+            blood_pressure_low = #{bloodPressureLow},
+            blood_glucose_high = #{bloodGlucoseHigh},
+            blood_glucose_low = #{bloodGlucoseLow},
+            heart_rate_low = #{heartRatelow},
+            heart_rate_high = #{heartRatehigh},
+            spo2 = #{spo2},
+            temperature_high = #{temperatureHigh},
+            temperature_low = #{temperatureLow},
+            weight = #{weight},
+            update_date = now()
+        where id = 1
+    </update>
+</mapper>

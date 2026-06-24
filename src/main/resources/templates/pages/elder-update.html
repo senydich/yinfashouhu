@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&#32534;&#36753;&#32769;&#20154;&#20449;&#24687;</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; min-height: 100%; }
+        body { font-family: Arial, sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); padding: 24px 28px; border: 1px solid #e9eef2; max-width: 860px; margin: 0 auto; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+        .card-header h2 { font-size: 1.1rem; font-weight: 600; color: #1e3a5f; }
+        .btn-secondary { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 6px 22px; border-radius: 32px; font-size: .8rem; font-weight: 500; color: #334e68; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-secondary:hover { background: #e6edf5; }
+        .btn-primary { background: #2563eb; border: none; color: white; font-weight: 500; padding: 6px 22px; border-radius: 32px; font-size: .8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary:hover { background: #1a4fbc; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: .78rem; font-weight: 500; color: #334e68; margin-bottom: 4px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: .85rem; outline: none; background: white; }
+        .form-group input:focus, .form-group select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; border-top: 1px solid #ecf1f5; padding-top: 20px; }
+        .required { color: #b33a3a; margin-left: 2px; }
+        .error-box { margin-bottom: 16px; padding: 10px 14px; border-radius: 10px; background: #fce4e4; color: #9b2c2c; font-size: .8rem; border: 1px solid #f3b4b4; }
+        @media (max-width: 700px) { .form-row { grid-template-columns: 1fr; gap: 0; } }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-user-edit"></i> &#32534;&#36753;&#32769;&#20154;&#20449;&#24687;</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-pen"></i> &#20462;&#25913;&#32769;&#20154;&#20449;&#24687;</h2>
+        <a href="/elder/elderList" class="btn-secondary"><i class="fas fa-arrow-left"></i> &#36820;&#22238;&#21015;&#34920;</a>
+    </div>
+
+    <div class="error-box" th:if="${errMsg != null}" th:text="${errMsg}">error</div>
+
+    <form id="elderForm" action="/elder/update" method="post" th:object="${elder}">
+        <input type="hidden" th:field="*{id}">
+        <div class="form-row">
+            <div class="form-group">
+                <label>&#22995;&#21517;<span class="required">*</span></label>
+                <input type="text" th:field="*{name}" placeholder="&#35831;&#36755;&#20837;&#22995;&#21517;" required>
+            </div>
+            <div class="form-group">
+                <label>&#20986;&#29983;&#26085;&#26399;<span class="required">*</span></label>
+                <input type="date" th:field="*{birthday}" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>&#24615;&#21035;<span class="required">*</span></label>
+                <select th:field="*{gender}" required>
+                    <option value="">&#35831;&#36873;&#25321;</option>
+                    <option value="0">&#30007;</option>
+                    <option value="1">&#22899;</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>&#20445;&#25252;&#29366;&#24577;</label>
+                <input type="text" th:field="*{healthStatus}" placeholder="&#22914;&#65306;&#39640;&#34880;&#21387;">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>&#32039;&#24613;&#32852;&#31995;&#20154;<span class="required">*</span></label>
+                <input type="text" th:field="*{emergencyContact}" placeholder="&#22995;&#21517;" required>
+            </div>
+            <div class="form-group">
+                <label>&#20851;&#31995;<span class="required">*</span></label>
+                <input type="text" th:field="*{relation}" placeholder="&#22914;&#65306;&#23376;&#22899;" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>&#32852;&#31995;&#30005;&#35805;<span class="required">*</span></label>
+                <input type="text" th:field="*{contactNumber}" placeholder="&#35831;&#36755;&#20837;&#30005;&#35805;" required>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/elder/elderList" class="btn-secondary"><i class="fas fa-times"></i> &#21462;&#28040;</a>
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> &#20445;&#23384;</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'elderInfo' }, '*');
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

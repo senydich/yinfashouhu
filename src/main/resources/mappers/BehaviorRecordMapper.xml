@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.BehaviorRecordDao">
+    <sql id="BaseColumnList">
+        br.id,
+        br.elder_id elderId,
+        e.name elderName,
+        br.behavior_type behaviorType,
+        br.behavior_name behaviorName,
+        br.location,
+        br.start_time startTime,
+        br.end_time endTime,
+        br.duration_minutes durationMinutes,
+        br.risk_level riskLevel,
+        br.source_device sourceDevice,
+        br.remark,
+        br.create_date createDate,
+        br.update_date updateDate
+    </sql>
+
+    <select id="behaviorRecordList" resultType="BehaviorRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_behavior_record br
+        left join t_elder e on br.elder_id = e.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderId != null">
+                and br.elder_id = #{elderId}
+            </if>
+            <if test="elderName != null and elderName != ''">
+                and e.name like concat('%', #{elderName}, '%')
+            </if>
+            <if test="behaviorType != null and behaviorType != ''">
+                and br.behavior_type = #{behaviorType}
+            </if>
+            <if test="riskLevel != null and riskLevel != ''">
+                and br.risk_level = #{riskLevel}
+            </if>
+        </trim>
+        order by br.start_time desc, br.id desc
+    </select>
+
+    <select id="getById" resultType="BehaviorRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_behavior_record br
+        left join t_elder e on br.elder_id = e.id
+        where br.id = #{id}
+    </select>
+
+    <select id="findByElderAndDate" resultType="BehaviorRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_behavior_record br
+        left join t_elder e on br.elder_id = e.id
+        where br.elder_id = #{elderId}
+          and date(br.start_time) = date(#{reportDate})
+        order by br.start_time asc, br.id asc
+    </select>
+
+    <select id="countDuplicate" resultType="int">
+        select count(1)
+        from t_behavior_record
+        where elder_id = #{elderId}
+          and behavior_type = #{behaviorType}
+          and behavior_name = #{behaviorName}
+          and start_time = #{startTime}
+        <if test="id != null">
+            and id != #{id}
+        </if>
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_behavior_record
+        (elder_id, behavior_type, behavior_name, location, start_time, end_time, duration_minutes, risk_level, source_device, remark, create_date, update_date)
+        values
+        (#{elderId}, #{behaviorType}, #{behaviorName}, #{location}, #{startTime}, #{endTime}, #{durationMinutes}, #{riskLevel}, #{sourceDevice}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_behavior_record set
+            elder_id = #{elderId},
+            behavior_type = #{behaviorType},
+            behavior_name = #{behaviorName},
+            location = #{location},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            duration_minutes = #{durationMinutes},
+            risk_level = #{riskLevel},
+            source_device = #{sourceDevice},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_behavior_record where id = #{id}
+    </delete>
+</mapper>

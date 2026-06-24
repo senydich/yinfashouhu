@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.DialogRecordDao">
+    <sql id="BaseColumnList">
+        dr.id,
+        dr.elder_id elderId,
+        e.name elderName,
+        dr.dialog_time dialogTime,
+        dr.speaker,
+        dr.dialog_content dialogContent,
+        dr.emotion,
+        dr.remark,
+        dr.create_date createDate,
+        dr.update_date updateDate
+    </sql>
+
+    <select id="dialogRecordList" resultType="DialogRecord">
+        select
+        <include refid="BaseColumnList"/>
+        from t_dialog_record dr
+        left join t_elder e on dr.elder_id = e.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderName != null and elderName != ''">
+                and e.name like concat('%', #{elderName}, '%')
+            </if>
+            <if test="speaker != null and speaker != ''">
+                and dr.speaker = #{speaker}
+            </if>
+            <if test="emotion != null and emotion != ''">
+                and dr.emotion = #{emotion}
+            </if>
+        </trim>
+        order by dr.dialog_time desc, dr.id desc
+    </select>
+</mapper>

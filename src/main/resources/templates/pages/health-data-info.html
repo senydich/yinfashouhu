@@ -1,0 +1,650 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康数据 · 银发守护</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body {
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background: #f8fafc;
+            padding: 16px 20px;
+            color: #1e293b;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0f2b45;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .date-selector-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+            padding: 4px 8px;
+            border-radius: 32px;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .date-nav-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: #fff;
+            color: #475569;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        }
+        .date-nav-btn:hover { background: #2563eb; color: #fff; }
+        .current-date {
+            min-width: 128px;
+            text-align: center;
+            font-size: .82rem;
+            cursor: pointer;
+            color: #1e293b;
+        }
+        .current-date i { margin-left: 6px; color: #2563eb; }
+        .export-btn, .btn-primary, .btn-secondary {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 6px 16px;
+            border-radius: 32px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #475569;
+            cursor: pointer;
+            font-size: .75rem;
+            text-decoration: none;
+        }
+        .btn-primary:hover, .btn-secondary:hover, .export-btn:hover { border-color: #2563eb; color: #2563eb; }
+        .date-picker-dropdown {
+            position: absolute;
+            top: 42px;
+            left: 0;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px -4px rgba(0,0,0,.1);
+            padding: 12px;
+            z-index: 10;
+            width: 242px;
+            display: none;
+        }
+        .date-picker-dropdown.show { display: block; }
+        .date-picker-header, .date-picker-footer { display: flex; justify-content: space-between; align-items: center; }
+        .date-picker-header { margin-bottom: 12px; }
+        .date-picker-header button, .date-picker-footer button {
+            border: none;
+            background: transparent;
+            color: #2563eb;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 16px;
+        }
+        .date-picker-header button:hover, .date-picker-footer button:hover { background: #eef2ff; }
+        .date-picker-month { font-weight: 700; font-size: .82rem; }
+        .date-picker-weekdays, .date-picker-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            gap: 2px;
+        }
+        .date-picker-weekdays { color: #64748b; font-size: .68rem; margin-bottom: 6px; }
+        .date-picker-day {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: #fff;
+            cursor: pointer;
+            color: #1e293b;
+            font-size: .72rem;
+            margin: 0 auto;
+        }
+        .date-picker-day:hover { background: #f1f5f9; }
+        .date-picker-day.selected { background: #2563eb; color: #fff; }
+        .date-picker-day.other-month { color: #94a3b8; }
+        .date-picker-day.today { border: 1.5px solid #2563eb; }
+        .date-picker-footer { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+        .stats-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .summary-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e9eef2;
+        }
+        .summary-card .label { color: #64748b; font-size: .8rem; margin-bottom: 4px; }
+        .summary-card .value { font-size: 1.4rem; font-weight: 700; color: #1e3a8a; }
+        .summary-card .trend { font-size: .78rem; margin-top: 3px; color: #64748b; }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 3px 12px -4px rgba(0,0,0,.04);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e9eef2;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .card-header h2 { font-size: 1.05rem; font-weight: 600; color: #1e3a5f; }
+        .hint { color: #64748b; font-size: .72rem; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: .8rem; min-width: 900px; }
+        th {
+            text-align: left;
+            padding: 10px;
+            color: #2b4f6e;
+            font-weight: 600;
+            background: #f8fafc;
+            border-bottom: 1px solid #dee7ef;
+            white-space: nowrap;
+        }
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ecf1f5;
+            color: #1e3b4f;
+            white-space: nowrap;
+        }
+        .warning-value, .normal-value {
+            border-radius: 16px;
+            padding: 3px 10px;
+            display: inline-block;
+            font-size: .75rem;
+        }
+        .warning-value { color: #b91c1c; font-weight: 700; background: #fee2e2; }
+        .normal-value { color: #1e3b4f; background: #f8fafc; }
+        .threshold-info {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 12px;
+            font-size: .72rem;
+            color: #64748b;
+            flex-wrap: wrap;
+        }
+        .threshold-item { display: flex; align-items: center; gap: 4px; }
+        .threshold-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; }
+        .threshold-dot.normal { background: #10b981; }
+        .pagination { display: flex; justify-content: flex-end; gap: 6px; margin-top: 16px; }
+        .page-btn {
+            padding: 4px 10px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            border-radius: 6px;
+            color: #475569;
+            cursor: pointer;
+            font-size: .7rem;
+        }
+        .page-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+        .page-btn:hover:not(.active) { background: #f8fafc; }
+        .btn-icon {
+            background: none;
+            border: none;
+            color: #5f7d9c;
+            cursor: pointer;
+            font-size: .9rem;
+        }
+        .btn-icon:hover { color: #2563eb; }
+        .btn-icon.danger:hover { color: #b33a3a; }
+        @media (max-width: 800px) { .stats-summary { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .stats-summary { grid-template-columns: 1fr; } }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-heartbeat"></i> 健康数据</h1>
+</div>
+
+<div class="toolbar">
+    <div class="date-selector-container" id="dateSelectorContainer">
+        <button class="date-nav-btn" id="prevDayBtn" title="前一天" type="button"><i class="fas fa-chevron-left"></i></button>
+        <div class="current-date" id="currentDateDisplay">
+            <span id="dateText" th:text="${query != null and query.recordTime != null ? #dates.format(query.recordTime, 'yyyy-MM-dd') : todayStr}">2026-06-17</span>
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <button class="date-nav-btn" id="nextDayBtn" title="后一天" type="button"><i class="fas fa-chevron-right"></i></button>
+        <div class="date-picker-dropdown" id="datePickerDropdown">
+            <div class="date-picker-header">
+                <button id="prevMonthBtn" type="button"><i class="fas fa-chevron-left"></i></button>
+                <span class="date-picker-month" id="currentMonth">2026年6月</span>
+                <button id="nextMonthBtn" type="button"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="date-picker-weekdays">
+                <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+            </div>
+            <div class="date-picker-days" id="datePickerDays"></div>
+            <div class="date-picker-footer">
+                <button id="todayBtn" type="button">今天</button>
+                <button id="closePickerBtn" type="button">关闭</button>
+            </div>
+        </div>
+    </div>
+    <a class="export-btn" href="/healthData/addView">
+        <i class="fas fa-plus"></i> 新增数据
+    </a>
+</div>
+
+<div class="stats-summary">
+    <div class="summary-card">
+        <div class="label">今日记录</div>
+        <div class="value" th:text="${todayCount}">0</div>
+        <div class="trend" id="todayTrend">持平</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">异常记录</div>
+        <div class="value" th:text="${abnormalCount}">0</div>
+        <div class="trend" id="abnormalTrend">持平</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">血压异常</div>
+        <div class="value" th:text="${bpAbnormal}">0</div>
+        <div class="trend">老人</div>
+    </div>
+    <div class="summary-card">
+        <div class="label">血糖异常</div>
+        <div class="value" th:text="${glucoseAbnormal}">0</div>
+        <div class="trend">老人</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-table"></i> <span id="tableDateTitle" th:text="${query != null and query.recordTime != null ? #dates.format(query.recordTime, 'yyyy-MM-dd') : todayStr}">2026-06-17</span> 健康记录</h2>
+        <span class="hint">根据阈值自动标记异常数据</span>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>老人姓名</th>
+                <th>血压(mmHg)</th>
+                <th>血糖(mmol/L)</th>
+                <th>心率(bpm)</th>
+                <th>血氧(%)</th>
+                <th>体温(℃)</th>
+                <th>体重(kg)</th>
+                <th>记录时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+            <tr>
+                <td colspan="9" style="text-align:center; padding: 30px; color: #64748b;">
+                    <i class="fas fa-inbox" style="font-size: 1.8rem; margin-bottom: 8px; display:block;"></i>
+                    正在加载健康数据
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="threshold-info">
+        <div class="threshold-item"><span class="threshold-dot"></span><span th:text="${'血压 >' + hdt.bloodPressureHigh + '/' + hdt.bloodPressureLow}">血压 >140/90</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span th:text="${'血糖 ' + hdt.bloodGlucoseLow + ' - ' + hdt.bloodGlucoseHigh}">血糖 10.0 - 7.0</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span th:text="${'心率 ' + hdt.heartRatelow + ' - ' + hdt.heartRatehigh}">心率 60 - 100</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span th:text="${'血氧 <' + hdt.spo2 + '%'}">血氧 <95%</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span th:text="${'体温 ' + hdt.temperatureLow + ' - ' + hdt.temperatureHigh + '℃'}">体温 35.5 - 37.5℃</span></div>
+        <div class="threshold-item"><span class="threshold-dot"></span><span th:text="${'体重波动 >' + hdt.weight + 'kg'}">体重波动 >2.0kg</span></div>
+        <div class="threshold-item"><span class="threshold-dot normal"></span><span>正常范围</span></div>
+    </div>
+
+    <div class="pagination">
+        <button class="page-btn" type="button" th:classappend="${currentPage <= 1 ? ' disabled' : ''}" th:onclick="|gotoPage(${currentPage - 1})|"><i class="fas fa-chevron-left"></i></button>
+        <button class="page-btn active" type="button" th:text="${currentPage}">1</button>
+        <button class="page-btn" type="button" th:classappend="${currentPage >= totalPages ? ' disabled' : ''}" th:onclick="|gotoPage(${currentPage + 1})|"><i class="fas fa-chevron-right"></i></button>
+    </div>
+</div>
+
+<form id="queryForm" action="/healthData/list" method="get" style="display:none;">
+    <input type="hidden" name="pageNum" id="pageNum" th:value="${currentPage}">
+    <input type="hidden" name="pageSize" id="pageSize" th:value="${query != null and query.pageSize != null ? query.pageSize : 10}">
+    <input type="hidden" name="elderName" id="elderName" th:value="${query != null ? query.elderName : ''}">
+    <input type="hidden" name="startTime" id="startTime" th:value="${query != null and query.startTime != null ? #dates.format(query.startTime, 'yyyy-MM-dd''T''HH:mm') : ''}">
+    <input type="hidden" name="endTime" id="endTime" th:value="${query != null and query.endTime != null ? #dates.format(query.endTime, 'yyyy-MM-dd''T''HH:mm') : ''}">
+</form>
+
+<script th:inline="javascript">
+    const healthDataList = /*[[${healthDataList}]]*/ [];
+    const query = /*[[${query}]]*/ {};
+    const initialDate = /*[[${todayStr}]]*/ '2026-06-22';
+    let currentDate = new Date(initialDate);
+    if (isNaN(currentDate.getTime())) {
+        currentDate = new Date();
+    }
+    let selectedDateStr = formatDate(currentDate);
+    let pickerCurrentMonth = new Date(currentDate);
+    const thresholds = {
+        bpSystolic: /*[[${hdt != null and hdt.bloodPressureHigh != null ? hdt.bloodPressureHigh : 140}]]*/ 140,
+        bpDiastolic: /*[[${hdt != null and hdt.bloodPressureLow != null ? hdt.bloodPressureLow : 90}]]*/ 90,
+        glucoseHigh: /*[[${hdt != null and hdt.bloodGlucoseHigh != null ? hdt.bloodGlucoseHigh : 7.0}]]*/ 7.0,
+        glucoseLow: /*[[${hdt != null and hdt.bloodGlucoseLow != null ? hdt.bloodGlucoseLow : 0.0}]]*/ 0.0,
+        hrMin: /*[[${hdt != null and hdt.heartRatelow != null ? hdt.heartRatelow : 60}]]*/ 60,
+        hrMax: /*[[${hdt != null and hdt.heartRatehigh != null ? hdt.heartRatehigh : 100}]]*/ 100,
+        spo2: /*[[${hdt != null and hdt.spo2 != null ? hdt.spo2 : 95}]]*/ 95,
+        tempHigh: /*[[${hdt != null and hdt.temperatureHigh != null ? hdt.temperatureHigh : 37.5}]]*/ 37.5,
+        tempLow: /*[[${hdt != null and hdt.temperatureLow != null ? hdt.temperatureLow : 35.5}]]*/ 35.5,
+        weightRange: /*[[${hdt != null and hdt.weight != null ? hdt.weight : 2.0}]]*/ 2.0
+    };
+    const byDate = {};
+    (healthDataList || []).forEach(function(item) {
+        if (!item || !item.recordTime) return;
+        const d = new Date(item.recordTime);
+        const key = formatDate(d);
+        if (!byDate[key]) byDate[key] = [];
+        byDate[key].push(item);
+    });
+
+    const dateText = document.getElementById('dateText');
+    const tableDateTitle = document.getElementById('tableDateTitle');
+    const tableBody = document.getElementById('tableBody');
+    const datePickerDropdown = document.getElementById('datePickerDropdown');
+    const datePickerDays = document.getElementById('datePickerDays');
+    const currentMonthSpan = document.getElementById('currentMonth');
+    const todayCount = document.querySelector('.summary-card .value');
+    const abnormalCount = document.querySelectorAll('.summary-card .value')[1];
+    const bpAbnormal = document.querySelectorAll('.summary-card .value')[2];
+    const glucoseAbnormal = document.querySelectorAll('.summary-card .value')[3];
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    function parseBp(bpValue) {
+        if (!bpValue || bpValue.indexOf('/') < 0) return [0, 0];
+        return bpValue.split('/').map(function(v) { return Number(v) || 0; });
+    }
+
+    function isAbnormal(type, value, bpValue, item) {
+        if (type === 'bp') {
+            const parts = parseBp(bpValue);
+            return parts[0] > thresholds.bpSystolic || parts[1] > thresholds.bpDiastolic;
+        }
+        if (type === 'glucose') return value > thresholds.glucoseHigh || value < thresholds.glucoseLow;
+        if (type === 'hr') return value < thresholds.hrMin || value > thresholds.hrMax;
+        if (type === 'spo2') return value < thresholds.spo2;
+        if (type === 'temp') return value > thresholds.tempHigh || value < thresholds.tempLow;
+        if (type === 'weight') {
+            const previousWeight = findPreviousWeight(item);
+            return previousWeight != null && Math.abs(Number(value) - previousWeight) > thresholds.weightRange;
+        }
+        return false;
+    }
+
+    function findPreviousWeight(currentItem) {
+        if (!currentItem || currentItem.weight == null || currentItem.elderId == null || !currentItem.recordTime) {
+            return null;
+        }
+        const currentTime = new Date(currentItem.recordTime).getTime();
+        let previous = null;
+        (healthDataList || []).forEach(function(item) {
+            if (!item || item.weight == null || item.elderId !== currentItem.elderId || !item.recordTime) {
+                return;
+            }
+            const itemTime = new Date(item.recordTime).getTime();
+            if (isNaN(itemTime) || itemTime >= currentTime) {
+                return;
+            }
+            if (previous == null || itemTime > previous.time) {
+                previous = { time: itemTime, weight: Number(item.weight) };
+            }
+        });
+        return previous == null ? null : previous.weight;
+    }
+
+    function getCurrentData(dateStr) {
+        return byDate[dateStr] || [];
+    }
+
+    function renderTable(dateStr) {
+        const data = getCurrentData(dateStr);
+        let html = '';
+        let bpAbnormalCountValue = 0;
+        let glucoseAbnormalCountValue = 0;
+        let totalAbnormal = 0;
+
+        data.forEach(function(item) {
+            const bpBad = isAbnormal('bp', null, item.bloodPressure);
+            const glucoseBad = isAbnormal('glucose', item.bloodGlucose);
+            const hrBad = isAbnormal('hr', item.heartRate);
+            const spo2Bad = isAbnormal('spo2', item.spo2);
+            const tempBad = isAbnormal('temp', item.temperature);
+            const weightBad = isAbnormal('weight', item.weight, null, item);
+            if (bpBad) bpAbnormalCountValue++;
+            if (glucoseBad) glucoseAbnormalCountValue++;
+            if (bpBad || glucoseBad || hrBad || spo2Bad || tempBad || weightBad) totalAbnormal++;
+            html += '<tr>'
+                + '<td><strong>' + escapeHtml(item.elder && item.elder.name ? item.elder.name : (item.elderName || '')) + '</strong></td>'
+                + '<td><span class="' + (bpBad ? 'warning-value' : 'normal-value') + '">' + escapeHtml(item.bloodPressure || '') + '</span></td>'
+                + '<td><span class="' + (glucoseBad ? 'warning-value' : 'normal-value') + '">' + (item.bloodGlucose == null ? '' : item.bloodGlucose) + '</span></td>'
+                + '<td><span class="' + (hrBad ? 'warning-value' : 'normal-value') + '">' + (item.heartRate == null ? '' : item.heartRate) + '</span></td>'
+                + '<td><span class="' + (spo2Bad ? 'warning-value' : 'normal-value') + '">' + (item.spo2 == null ? '' : item.spo2) + '</span></td>'
+                + '<td><span class="' + (tempBad ? 'warning-value' : 'normal-value') + '">' + (item.temperature == null ? '' : item.temperature) + '</span></td>'
+                + '<td><span class="' + (weightBad ? 'warning-value' : 'normal-value') + '">' + (item.weight == null ? '' : item.weight) + '</span></td>'
+                + '<td>' + formatTime(item.recordTime) + '</td>'
+                + '<td>'
+                + '<button class="btn-icon" type="button" title="编辑" onclick="location.href=\'/healthData/updateView?id=' + item.id + '\'"><i class="fas fa-edit"></i></button>'
+                + '<button class="btn-icon danger" type="button" title="删除" onclick="delHealthData(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>'
+                + '</td>'
+                + '</tr>';
+        });
+
+        if (!data.length) {
+            html = '<tr><td colspan="9" style="text-align:center; padding: 30px; color: #64748b;">'
+                + '<i class="fas fa-inbox" style="font-size: 1.8rem; margin-bottom: 8px; display:block;"></i>'
+                + '暂无 ' + dateStr + ' 的健康数据</td></tr>';
+        }
+
+        tableBody.innerHTML = html;
+        todayCount.textContent = data.length;
+        abnormalCount.textContent = totalAbnormal;
+        bpAbnormal.textContent = bpAbnormalCountValue;
+        glucoseAbnormal.textContent = glucoseAbnormalCountValue;
+        setTrend(document.getElementById('todayTrend'), data.length - getPrevData().length);
+        setTrend(document.getElementById('abnormalTrend'), totalAbnormal - countAbnormal(getPrevData()));
+    }
+
+    function getPrevData() {
+        const prevDate = new Date(currentDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        return getCurrentData(formatDate(prevDate));
+    }
+
+    function countAbnormal(data) {
+        return (data || []).filter(function(item) {
+            return isAbnormal('bp', null, item.bloodPressure)
+                || isAbnormal('glucose', item.bloodGlucose)
+                || isAbnormal('hr', item.heartRate)
+                || isAbnormal('spo2', item.spo2)
+                || isAbnormal('temp', item.temperature)
+                || isAbnormal('weight', item.weight, null, item);
+        }).length;
+    }
+
+    function setTrend(element, value) {
+        if (!element) return;
+        if (value > 0) {
+            element.textContent = '↑' + value + ' 较昨日';
+            element.style.color = '#10b981';
+        } else if (value < 0) {
+            element.textContent = '↓' + Math.abs(value) + ' 较昨日';
+            element.style.color = '#ef4444';
+        } else {
+            element.textContent = '持平';
+            element.style.color = '#64748b';
+        }
+    }
+
+    function formatTime(value) {
+        if (!value) return '';
+        try {
+            const d = new Date(value);
+            if (!isNaN(d.getTime())) {
+                const h = String(d.getHours()).padStart(2, '0');
+                const m = String(d.getMinutes()).padStart(2, '0');
+                return h + ':' + m;
+            }
+        } catch (e) {}
+        return '';
+    }
+
+    function escapeHtml(text) {
+        return String(text || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function updateDisplay() {
+        const dateStr = formatDate(currentDate);
+        selectedDateStr = dateStr;
+        dateText.textContent = dateStr;
+        tableDateTitle.textContent = dateStr;
+        renderTable(dateStr);
+    }
+
+    function changeDay(delta) {
+        const newDate = new Date(currentDate);
+        newDate.setDate(newDate.getDate() + delta);
+        currentDate = newDate;
+        pickerCurrentMonth = new Date(currentDate);
+        updateDisplay();
+    }
+
+    function renderDatePickerDays() {
+        const year = pickerCurrentMonth.getFullYear();
+        const month = pickerCurrentMonth.getMonth();
+        currentMonthSpan.textContent = year + '年' + (month + 1) + '月';
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDay = firstDay.getDay();
+        const totalDays = lastDay.getDate();
+        let html = '';
+        const prevMonthLastDay = new Date(year, month, 0).getDate();
+        for (let i = startDay - 1; i >= 0; i--) {
+            html += '<button class="date-picker-day other-month" type="button">' + (prevMonthLastDay - i) + '</button>';
+        }
+        const today = new Date();
+        for (let d = 1; d <= totalDays; d++) {
+            const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+            const classes = [
+                'date-picker-day',
+                today.getFullYear() === year && today.getMonth() === month && today.getDate() === d ? 'today' : '',
+                dateStr === selectedDateStr ? 'selected' : ''
+            ].join(' ');
+            html += '<button class="' + classes + '" type="button" data-date="' + dateStr + '">' + d + '</button>';
+        }
+        const remainingCells = 42 - (startDay + totalDays);
+        for (let d = 1; d <= remainingCells; d++) {
+            html += '<button class="date-picker-day other-month" type="button">' + d + '</button>';
+        }
+        datePickerDays.innerHTML = html;
+        document.querySelectorAll('.date-picker-day[data-date]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const parts = this.getAttribute('data-date').split('-').map(Number);
+                currentDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                pickerCurrentMonth = new Date(currentDate);
+                updateDisplay();
+                datePickerDropdown.classList.remove('show');
+            });
+        });
+    }
+
+    document.getElementById('prevDayBtn').addEventListener('click', function() { changeDay(-1); });
+    document.getElementById('nextDayBtn').addEventListener('click', function() { changeDay(1); });
+    document.getElementById('currentDateDisplay').addEventListener('click', function(e) {
+        e.stopPropagation();
+        datePickerDropdown.classList.toggle('show');
+        renderDatePickerDays();
+    });
+    document.getElementById('prevMonthBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        pickerCurrentMonth.setMonth(pickerCurrentMonth.getMonth() - 1);
+        renderDatePickerDays();
+    });
+    document.getElementById('nextMonthBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        pickerCurrentMonth.setMonth(pickerCurrentMonth.getMonth() + 1);
+        renderDatePickerDays();
+    });
+    document.getElementById('todayBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        currentDate = new Date();
+        pickerCurrentMonth = new Date(currentDate);
+        updateDisplay();
+        datePickerDropdown.classList.remove('show');
+    });
+    document.getElementById('closePickerBtn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        datePickerDropdown.classList.remove('show');
+    });
+    document.addEventListener('click', function(e) {
+        if (!document.getElementById('dateSelectorContainer').contains(e.target)) {
+            datePickerDropdown.classList.remove('show');
+        }
+    });
+
+    function gotoPage(pageNum) {
+        document.getElementById('pageNum').value = pageNum;
+        document.getElementById('queryForm').submit();
+    }
+
+    function delHealthData(id) {
+        if (confirm('确认删除这条健康数据吗？')) {
+            location.href = '/healthData/delete?id=' + id;
+        }
+    }
+
+    updateDisplay();
+    window.parent.postMessage({ type: 'pageLoaded', page: 'healthData' }, '*');
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

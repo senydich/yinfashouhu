@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.EventRecordDao">
+    <select id="eventRecordList" resultType="EventRecord">
+        select *
+        from (
+            select
+                concat('FALL-', fr.id) id,
+                fr.id sourceId,
+                'FALL' eventType,
+                e.name elderName,
+                fr.fall_time eventTime,
+                '跌倒告警' eventTitle,
+                ifnull(fr.severity, 'LOW') eventLevel,
+                case when fr.handle_result is not null and fr.handle_result != '' then 'DONE' else 'PENDING' end eventStatus,
+                concat('位置：', ifnull(fr.fall_location, '未记录'), '；处理：', ifnull(fr.handle_result, '待处理')) eventContent,
+                '/record/fallRecordList' sourceUrl
+            from t_fall_record fr
+            left join t_elder e on fr.elder_id = e.id
+
+            union all
+
+            select
+                concat('HEALTH-', hd.id) id,
+                hd.id sourceId,
+                'HEALTH' eventType,
+                e.name elderName,
+                hd.record_time eventTime,
+                '健康指标异常' eventTitle,
+                case
+                    when (hdt.spo2 is not null and hd.spo2 &lt; hdt.spo2) or (hdt.heart_rate_high is not null and hd.heart_rate > hdt.heart_rate_high) then 'HIGH'
+                    else 'MEDIUM'
+                end eventLevel,
+                'PENDING' eventStatus,
+                concat('血压 ', ifnull(hd.blood_pressure, '-'), '；血糖 ', hd.blood_glucose, '；心率 ', hd.heart_rate, '；血氧 ', hd.spo2, '；体温 ', hd.temperature) eventContent,
+                '/healthData/list' sourceUrl
+            from t_health_data hd
+            left join t_elder e on hd.elder_id = e.id
+            left join t_health_data_threshold hdt on hdt.id = 1
+            where
+                (hdt.blood_glucose_high is not null and hd.blood_glucose > hdt.blood_glucose_high)
+                or (hdt.blood_glucose_low is not null and hd.blood_glucose &lt; hdt.blood_glucose_low)
+                or (hdt.heart_rate_high is not null and hd.heart_rate > hdt.heart_rate_high)
+                or (hdt.heart_rate_low is not null and hd.heart_rate &lt; hdt.heart_rate_low)
+                or (hdt.spo2 is not null and hd.spo2 &lt; hdt.spo2)
+                or (hdt.temperature_high is not null and hd.temperature > hdt.temperature_high)
+                or (hdt.temperature_low is not null and hd.temperature &lt; hdt.temperature_low)
+                or (
+                    hd.blood_pressure is not null and instr(hd.blood_pressure, '/') > 0
+                    and (
+                        (hdt.blood_pressure_high is not null and cast(substring_index(hd.blood_pressure, '/', 1) as decimal(8,2)) > hdt.blood_pressure_high)
+                        or (hdt.blood_pressure_low is not null and cast(substring_index(hd.blood_pressure, '/', -1) as decimal(8,2)) &lt; hdt.blood_pressure_low)
+                    )
+                )
+
+            union all
+
+            select
+                concat('REMINDER-', rt.id) id,
+                rt.id sourceId,
+                'REMINDER' eventType,
+                e.name elderName,
+                rt.remind_time eventTime,
+                '提醒任务待处理' eventTitle,
+                case when rt.remind_time &lt; now() then 'MEDIUM' else 'LOW' end eventLevel,
+                rt.status eventStatus,
+                concat(
+                    '任务：', rt.task_title,
+                    '；类型：',
+                    case rt.task_type
+                        when 'MEDICATION' then '用药'
+                        when 'MEAL' then '用餐'
+                        when 'ACTIVITY' then '活动'
+                        when 'FOLLOW_UP' then '随访'
+                        when 'CHECKUP' then '体检'
+                        else rt.task_type
+                    end
+                ) eventContent,
+                '/record/reminderTaskList' sourceUrl
+            from t_reminder_task rt
+            left join t_elder e on rt.elder_id = e.id
+            where rt.status = 'PENDING'
+
+            union all
+
+            select
+                concat('DIALOG-', dr.id) id,
+                dr.id sourceId,
+                'DIALOG' eventType,
+                e.name elderName,
+                dr.dialog_time eventTime,
+                '异常情绪对话' eventTitle,
+                case when dr.emotion = 'ANXIOUS' then 'MEDIUM' else 'LOW' end eventLevel,
+                'DONE' eventStatus,
+                concat('发言人：', dr.speaker, '；情绪：', dr.emotion, '；内容：', dr.dialog_content) eventContent,
+                '/record/dialogRecordList' sourceUrl
+            from t_dialog_record dr
+            left join t_elder e on dr.elder_id = e.id
+            where dr.emotion in ('SAD', 'ANXIOUS')
+        ) ev
+        <trim prefix="where" prefixOverrides="and">
+            <if test="elderName != null and elderName != ''">
+                and ev.elderName like concat('%', #{elderName}, '%')
+            </if>
+            <if test="eventType != null and eventType != ''">
+                and ev.eventType = #{eventType}
+            </if>
+            <if test="eventLevel != null and eventLevel != ''">
+                and ev.eventLevel = #{eventLevel}
+            </if>
+            <if test="eventStatus != null and eventStatus != ''">
+                and ev.eventStatus = #{eventStatus}
+            </if>
+        </trim>
+        order by ev.eventTime desc, ev.id desc
+        limit 200
+    </select>
+</mapper>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dtdx.dao.DataDictionaryDao">
+    <sql id="BaseColumnList">
+        id,
+        dict_type dictType,
+        dict_code dictCode,
+        dict_name dictName,
+        dict_value dictValue,
+        sort_no sortNo,
+        status,
+        remark,
+        create_date createDate,
+        update_date updateDate
+    </sql>
+
+    <select id="dictionaryList" resultType="DataDictionary">
+        select
+        <include refid="BaseColumnList"/>
+        from t_data_dictionary
+        <trim prefix="where" prefixOverrides="or">
+            <if test="dictType != null and dictType != ''">
+                or dict_type like concat('%', #{dictType}, '%')
+            </if>
+            <if test="dictCode != null and dictCode != ''">
+                or dict_code like concat('%', #{dictCode}, '%')
+            </if>
+            <if test="dictName != null and dictName != ''">
+                or dict_name like concat('%', #{dictName}, '%')
+            </if>
+        </trim>
+        order by dict_type asc, sort_no asc, id desc
+    </select>
+
+    <select id="getById" resultType="DataDictionary">
+        select
+        <include refid="BaseColumnList"/>
+        from t_data_dictionary
+        where id = #{id}
+    </select>
+
+    <select id="getByTypeAndCode" resultType="DataDictionary">
+        select
+        <include refid="BaseColumnList"/>
+        from t_data_dictionary
+        where dict_type = #{dictType}
+          and dict_code = #{dictCode}
+        limit 1
+    </select>
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        insert into t_data_dictionary
+        (dict_type, dict_code, dict_name, dict_value, sort_no, status, remark, create_date, update_date)
+        values
+        (#{dictType}, #{dictCode}, #{dictName}, #{dictValue}, #{sortNo}, #{status}, #{remark}, now(), now())
+    </insert>
+
+    <update id="update">
+        update t_data_dictionary set
+            dict_type = #{dictType},
+            dict_code = #{dictCode},
+            dict_name = #{dictName},
+            dict_value = #{dictValue},
+            sort_no = #{sortNo},
+            status = #{status},
+            remark = #{remark},
+            update_date = now()
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from t_data_dictionary where id = #{id}
+    </delete>
+</mapper>

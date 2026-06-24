@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跌倒记录模块</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .card { background: #fff; border: 1px solid #e9eef2; border-radius: 16px; padding: 20px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); }
+        .card-header { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .search-bar { display: flex; gap: 10px; flex-wrap: wrap; }
+        .input, .select { min-width: 180px; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 32px; font-size: .8rem; }
+        .btn { background: #2563eb; color: #fff; border: none; border-radius: 32px; padding: 7px 16px; cursor: pointer; font-size: .8rem; }
+        table { width: 100%; border-collapse: collapse; min-width: 980px; font-size: .8rem; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #ecf1f5; white-space: nowrap; text-align: left; }
+        th { background: #f8fafc; color: #2b4f6e; }
+        .badge { padding: 3px 10px; border-radius: 24px; font-size: .7rem; }
+        .high { background: #fce4e4; color: #b33a3a; }
+        .medium { background: #fff3e0; color: #b45309; }
+        .low { background: #dff0e6; color: #1b6b4a; }
+        .text-cell { max-width: 280px; white-space: normal; line-height: 1.5; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-person-falling"></i> 跌倒记录模块</h1>
+</div>
+<div class="card">
+    <div class="card-header">
+        <div class="search-bar">
+            <input class="input" type="text" name="elderName" placeholder="按老人姓名搜索" form="searchForm">
+            <select class="select" name="severity" form="searchForm">
+                <option value="">全部等级</option>
+                <option value="LOW">低</option>
+                <option value="MEDIUM">中</option>
+                <option value="HIGH">高</option>
+            </select>
+            <button class="btn" form="searchForm" type="submit"><i class="fas fa-search"></i> 搜索</button>
+        </div>
+    </div>
+    <form id="searchForm" action="/record/fallRecordList" method="get"></form>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th><th>老人</th><th>跌倒时间</th><th>位置</th><th>等级</th><th>处理结果</th><th>备注</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${fallRecordList}">
+            <td th:text="${item.id}"></td>
+            <td th:text="${item.elderName}"></td>
+            <td th:text="${item.fallTime != null ? #dates.format(item.fallTime, 'yyyy-MM-dd HH:mm') : ''}"></td>
+            <td th:text="${item.fallLocation}"></td>
+            <td><span class="badge" th:classappend="${item.severity == 'HIGH' ? ' high' : (item.severity == 'MEDIUM' ? ' medium' : ' low')}" th:text="${item.severity}"></span></td>
+            <td th:text="${item.handleResult}"></td>
+            <td class="text-cell" th:text="${item.remark}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script>window.parent.postMessage({ type: 'pageLoaded', page: 'fallRecords' }, '*');</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

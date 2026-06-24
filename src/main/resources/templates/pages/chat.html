@@ -1,0 +1,283 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消息 · 银发守护</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow: hidden; display: flex; flex-direction: column; }
+        .page-header { margin-bottom: 16px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; }
+        .page-header h1 i { color: #2563eb; font-size: 1.4rem; }
+        .card { background: #fff; border-radius: 16px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); padding: 20px; border: 1px solid #e9eef2; display: flex; flex-direction: column; min-height: 0; flex: 1; overflow: hidden; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+        .card-header h2 { font-size: 1.05rem; font-weight: 600; color: #1e3a5f; display: flex; align-items: center; gap: 8px; }
+        .online-badge, .phone-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: .75rem;
+            font-weight: 500;
+        }
+        .online-badge { background: #e6f7e6; color: #0f6e3f; }
+        .phone-badge { background: #e6f0ff; color: #1e3a8a; border: 1px solid #b9d3ff; cursor: pointer; }
+        .phone-badge.calling { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+        .chat-messages { display: flex; flex-direction: column; gap: 18px; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 6px; margin-bottom: 16px; }
+        .message { display: flex; align-items: flex-end; gap: 10px; }
+        .message.sent { flex-direction: row-reverse; }
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            background: #eef2ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            flex-shrink: 0;
+            border: 1px solid #dbeafe;
+        }
+        .message-content { max-width: 76%; display: flex; flex-direction: column; }
+        .message-bubble { padding: 12px 16px; border-radius: 18px; font-size: .85rem; line-height: 1.6; word-break: break-word; }
+        .received .message-bubble { background: #f1f5f9; color: #0f172a; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
+        .sent .message-bubble { background: #2563eb; color: #fff; border-bottom-right-radius: 4px; }
+        .message-meta { display: flex; align-items: center; gap: 6px; font-size: .65rem; color: #64748b; margin-top: 4px; padding-left: 4px; }
+        .sent .message-meta { justify-content: flex-end; padding-right: 4px; color: #a5c9ff; }
+        .chat-input-area { display: flex; gap: 10px; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 18px; flex-wrap: nowrap; flex-shrink: 0; }
+        .chat-input-field { flex: 1 1 auto; min-width: 0; height: 46px; padding: 0 18px; border: 1px solid #e2e8f0; border-radius: 40px; font-size: .85rem; outline: none; background: #f8fafc; }
+        .chat-input-field:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); background: #fff; }
+        .input-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+        .btn-primary {
+            background: #2563eb;
+            border: none;
+            color: #fff;
+            font-weight: 500;
+            padding: 0 18px;
+            height: 42px;
+            border-radius: 32px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .85rem;
+            cursor: pointer;
+        }
+        .btn-voice {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #2563eb;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .btn-voice.recording { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+        .status-bar { margin-top: 20px; background: #dbeafe; border-radius: 12px; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: .75rem; flex-shrink: 0; }
+        .status-bar i { color: #2563eb; }
+        .status-bar .time { margin-left: auto; color: #1e3a8a; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header">
+    <h1><i class="fas fa-comment-dots"></i> 聊天 · 银发守护</h1>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-user-headset"></i> 后台健康管家</h2>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <div class="online-badge"><i class="fas fa-circle"></i> 在线 · 1 分钟内回复</div>
+            <div class="phone-badge" id="phoneBadge" title="点击拨打健康热线"><i class="fas fa-phone-alt"></i> 400-881-xxxx</div>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="message received">
+            <div class="message-avatar"><i class="fas fa-user-nurse"></i></div>
+            <div class="message-content">
+                <div class="message-bubble received">您好，李伯伯！我是您的健康管家。今天身体感觉怎么样？有任何问题随时找我。</div>
+                <div class="message-meta"><i class="far fa-clock"></i> 09:00</div>
+            </div>
+        </div>
+        <div class="message sent">
+            <div class="message-avatar"><i class="fas fa-user"></i></div>
+            <div class="message-content">
+                <div class="message-bubble sent">小管家，我今天早上测了血压，收缩压 138，舒张压 88，是不是偏高呀？</div>
+                <div class="message-meta"><i class="far fa-check-circle"></i> 已读 09:05</div>
+            </div>
+        </div>
+        <div class="message received">
+            <div class="message-avatar"><i class="fas fa-user-nurse"></i></div>
+            <div class="message-content">
+                <div class="message-bubble received">这个数值在正常范围内偏高一点，但不用太担心。您先静坐 5 分钟再测一次，如果还是偏高我会帮您记录提醒。</div>
+                <div class="message-meta"><i class="far fa-clock"></i> 09:06</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" class="chat-input-field" id="messageInput" placeholder="输入消息..." value="我今天血压有点高">
+        <div class="input-actions">
+            <button class="btn-voice" id="voiceButton" title="语音输入"><i class="fas fa-microphone"></i></button>
+            <button class="btn-primary" id="sendButton"><i class="fas fa-paper-plane"></i> 发送</button>
+        </div>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+        <i class="fas fa-shield-heart"></i>
+        <span>后台在线 · 通常 1 分钟内回复</span>
+        <span class="time" id="lastReplyTime"><i class="far fa-clock"></i> 最后回复 09:06</span>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const messagesContainer = document.getElementById('chatMessages');
+        const inputField = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const voiceButton = document.getElementById('voiceButton');
+        const phoneBadge = document.getElementById('phoneBadge');
+        const statusBar = document.getElementById('statusBar');
+        const replyPool = [
+            '收到，李伯伯。您的消息已转给值班健康师。',
+            '感谢您的提醒，我们会留意您的健康数据。',
+            '建议您多喝温水，有不适随时联系我。',
+            '您的消息已记录，祝您身体健康。',
+            '小管家明白，您放松心情，保持良好作息。'
+        ];
+
+        let replyTimer = null;
+        let recording = false;
+        let calling = false;
+
+        function getCurrentTimeString() {
+            const now = new Date();
+            return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        }
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function updateLastReplyTime(timeStr) {
+            const lastReplySpan = document.getElementById('lastReplyTime');
+            lastReplySpan.innerHTML = '<i class="far fa-clock"></i> 最后回复 ' + timeStr;
+        }
+
+        function updateStatus(icon, text) {
+            statusBar.innerHTML = '<i class="' + icon + '"></i><span>' + text + '</span>'
+                + '<span class="time" id="lastReplyTime"><i class="far fa-clock"></i> 最后回复 ' + getCurrentTimeString() + '</span>';
+        }
+
+        function createMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + type;
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            avatarDiv.innerHTML = type === 'sent' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-user-nurse"></i>';
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble ' + type;
+            bubbleDiv.textContent = text;
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'message-meta';
+            const timeStr = getCurrentTimeString();
+            metaDiv.innerHTML = type === 'sent'
+                ? '<i class="far fa-check-circle"></i> 已读 ' + timeStr
+                : '<i class="far fa-clock"></i> ' + timeStr;
+            contentDiv.appendChild(bubbleDiv);
+            contentDiv.appendChild(metaDiv);
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            return messageDiv;
+        }
+
+        function sendUserMessage() {
+            const rawText = inputField.value.trim();
+            if (!rawText) return;
+            messagesContainer.appendChild(createMessage(rawText, 'sent'));
+            inputField.value = '';
+            scrollToBottom();
+
+            if (replyTimer) clearTimeout(replyTimer);
+            replyTimer = setTimeout(function () {
+                const replyText = replyPool[Math.floor(Math.random() * replyPool.length)];
+                messagesContainer.appendChild(createMessage(replyText, 'received'));
+                updateLastReplyTime(getCurrentTimeString());
+                scrollToBottom();
+                replyTimer = null;
+            }, 1000);
+        }
+
+        sendButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            sendUserMessage();
+        });
+
+        inputField.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendUserMessage();
+            }
+        });
+
+        voiceButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            recording = !recording;
+            voiceButton.classList.toggle('recording', recording);
+            voiceButton.innerHTML = recording ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-microphone"></i>';
+            if (recording) {
+                inputField.placeholder = '正在模拟语音输入，点击停止后生成文字...';
+                updateStatus('fas fa-microphone-lines', '语音输入已开启，正在识别老人语音');
+                return;
+            }
+            inputField.value = '我刚刚说的是：今天感觉精神还不错，晚饭后想去花园走走。';
+            inputField.placeholder = '输入消息...';
+            updateStatus('fas fa-keyboard', '语音已转换为文字，可继续编辑后发送');
+        });
+
+        phoneBadge.addEventListener('click', function (e) {
+            e.preventDefault();
+            calling = !calling;
+            phoneBadge.classList.toggle('calling', calling);
+            phoneBadge.innerHTML = calling
+                ? '<i class="fas fa-phone-volume"></i> 通话中 400-881-xxxx'
+                : '<i class="fas fa-phone-alt"></i> 400-881-xxxx';
+            updateStatus(calling ? 'fas fa-phone-volume' : 'fas fa-shield-heart',
+                calling ? '健康热线已接通，正在同步当前老人健康档案' : '通话已结束，后台在线 · 通常 1 分钟内回复');
+        });
+
+        window.addEventListener('load', function () {
+            scrollToBottom();
+        });
+
+        window.parent.postMessage({ type: 'pageLoaded', page: 'chat' }, '*');
+    })();
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>

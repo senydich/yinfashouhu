@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音终端管理</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, "Microsoft YaHei", sans-serif; background: #f8fafc; padding: 16px 20px; color: #1e293b; overflow-y: auto; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 600; color: #0f2b45; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .card { background: #fff; border: 1px solid #e9eef2; border-radius: 16px; padding: 20px; box-shadow: 0 3px 12px -4px rgba(0,0,0,.04); }
+        .card-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .btn-primary { background: #2563eb; border: none; color: #fff; padding: 7px 16px; border-radius: 32px; text-decoration: none; display: inline-flex; gap: 6px; align-items: center; font-size: .8rem; cursor: pointer; }
+        .btn-icon { background: none; border: none; color: #5f7d9c; margin: 0 4px; cursor: pointer; }
+        .btn-icon:hover { color: #2563eb; }
+        .btn-icon.danger:hover { color: #b33a3a; }
+        .search-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .input, .select { min-width: 170px; padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 32px; font-size: .8rem; }
+        table { width: 100%; border-collapse: collapse; min-width: 1280px; font-size: .8rem; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid #ecf1f5; white-space: nowrap; text-align: left; }
+        th { background: #f8fafc; color: #2b4f6e; }
+        .badge { padding: 3px 10px; border-radius: 24px; font-size: .7rem; }
+        .online { background: #e0f2e1; color: #0f6e3f; }
+        .offline { background: #ffe8e8; color: #b91c1c; }
+        .maintenance { background: #fff3e0; color: #b45309; }
+        .stats-info { margin-top: 12px; color: #64748b; font-size: .75rem; }
+    </style>
+    <link rel="stylesheet" href="/css/ui-polish.css">
+</head>
+<body>
+<div class="page-header"><h1><i class="fas fa-microphone-alt"></i> 语音终端管理</h1></div>
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fas fa-list-ul"></i> 终端列表</h2>
+        <a class="btn-primary" href="/record/voiceTerminalAddView"><i class="fas fa-plus"></i> 新增终端</a>
+    </div>
+    <form class="search-bar" action="/record/voiceTerminalList" method="get">
+        <input class="input" name="terminalCode" th:value="${query != null ? query.terminalCode : ''}" placeholder="终端编号">
+        <input class="input" name="terminalName" th:value="${query != null ? query.terminalName : ''}" placeholder="终端名称">
+        <input class="input" name="elderName" th:value="${query != null ? query.elderName : ''}" placeholder="绑定老人">
+        <input class="input" name="installLocation" th:value="${query != null ? query.installLocation : ''}" placeholder="安装位置">
+        <select class="select" name="status">
+            <option value="">全部状态</option>
+            <option value="ONLINE" th:selected="${query != null and query.status == 'ONLINE'}">在线</option>
+            <option value="OFFLINE" th:selected="${query != null and query.status == 'OFFLINE'}">离线</option>
+            <option value="MAINTENANCE" th:selected="${query != null and query.status == 'MAINTENANCE'}">维护中</option>
+        </select>
+        <button class="btn-primary" type="submit"><i class="fas fa-search"></i> 搜索</button>
+    </form>
+    <table>
+        <thead>
+        <tr><th>ID</th><th>编号</th><th>名称</th><th>老人</th><th>位置</th><th>IP</th><th>唤醒词</th><th>音量</th><th>版本</th><th>状态</th><th>最后在线</th><th>备注</th><th>操作</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${voiceTerminalList}">
+            <td th:text="${item.id}"></td>
+            <td th:text="${item.terminalCode}"></td>
+            <td th:text="${item.terminalName}"></td>
+            <td th:text="${item.elderName}"></td>
+            <td th:text="${item.installLocation}"></td>
+            <td th:text="${item.deviceIp}"></td>
+            <td th:text="${item.wakeWord}"></td>
+            <td th:text="${item.volume}"></td>
+            <td th:text="${item.firmwareVersion}"></td>
+            <td><span class="badge" th:classappend="${item.status == 'OFFLINE' ? ' offline' : (item.status == 'MAINTENANCE' ? ' maintenance' : ' online')}" th:text="${item.status == 'OFFLINE' ? '离线' : (item.status == 'MAINTENANCE' ? '维护中' : '在线')}"></span></td>
+            <td th:text="${item.lastOnlineTime != null ? #dates.format(item.lastOnlineTime, 'yyyy-MM-dd HH:mm') : ''}"></td>
+            <td th:text="${item.remark}"></td>
+            <td>
+                <i class="fas fa-edit btn-icon" th:onclick="|location.href='/record/voiceTerminalUpdateView?id=${item.id}'|"></i>
+                <i class="fas fa-trash-alt btn-icon danger" th:onclick="|delVoice(${item.id})|"></i>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="stats-info">共<span th:text="${voiceTerminalList == null ? 0 : voiceTerminalList.size()}">0</span>个终端</div>
+</div>
+<script>
+    window.parent.postMessage({ type: 'pageLoaded', page: 'voiceTerm' }, '*');
+    function delVoice(id) {
+        if (confirm('确认删除该终端吗？')) {
+            location.href = '/record/voiceTerminalDel?id=' + id;
+        }
+    }
+</script>
+<script>
+    (function() {
+        function applyAccentTheme(accent) {
+            document.body.dataset.accent = accent || localStorage.getItem('accentTheme') || 'blue';
+        }
+        applyAccentTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'accentApply') {
+                applyAccentTheme(event.data.accent);
+            }
+        });
+    })();
+</script></body>
+</html>
